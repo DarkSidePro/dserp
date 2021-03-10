@@ -1,0 +1,7 @@
+<div class="btn-group ml-auto">
+    <a href="{{ path('recipe_update', {'id': row.id }) }}" class="btn btn-sm btn-outline-light">Edit</a>
+    <a href="{{ path('recipe_details', {'id': row.id }) }}" class="btn btn-sm btn-outline-light">View details</a>
+    <a href="{{ path('recipe_delete', {'id': row.id }) }}" class="btn btn-sm btn-outline-light remove">
+        <i class="far fa-trash-alt"></i>
+    </a>
+</div>

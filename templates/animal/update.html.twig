@@ -1,0 +1,16 @@
+{% extends "_partials/body.html.twig" %}
+{% block title %}- Animal update{% endblock %}
+{% block page_header_title %}
+    Animal {{animal_name}} update
+{% endblock %}
+{% block content %}
+    <div class='col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12'>
+        <div class='card'>
+            <h5 class="card-header">Animal update</h5>
+            <div class='card-body'>
+                {{ form_start(form) }}
+                {{ form_end(form) }}     
+            </div>
+        </div>
+    </div>
+{% endblock %}
