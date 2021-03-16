@@ -10,7 +10,6 @@ use App\Form\RecipeDetailType;
 use App\Form\RecipeType;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\Query\Expr\Join;
 use Omines\DataTablesBundle\Adapter\Doctrine\ORM\SearchCriteriaProvider;
 use Omines\DataTablesBundle\Column\TextColumn;
 use Omines\DataTablesBundle\DataTableFactory;
@@ -37,7 +36,7 @@ class RecipeController extends AbstractController
         $this->denyAccessUnlessGranted('ROLE_USER');
 
         $table = $dataTableFactory->create([])
-            ->add('id', TextColumn::class, ['label' => 'Id', 'className' => 'bold', 'searchable' => true])
+            ->add('id', TextColumn::class, ['label' => '#', 'className' => 'bold', 'searchable' => true])
             ->add('recipe_name', TextColumn::class, ['label' => 'Recipe name', 'className' => 'bold', 'searchable' => true])
             ->add('product_name', TextColumn::class, ['label' => 'Product name', 'className' => 'bold', 'searchable' => true, 'field' => 'product.product_name', 'orderField' => 'product.product_name'])
             ->add('actions', TwigColumn::class, ['label' => 'Actions', 'className' => 'bold', 'searchable' => false, 'template' => 'recipe/_partials/table/actions.html.twig'])
@@ -123,8 +122,7 @@ class RecipeController extends AbstractController
         return $this->render('recipe/details/index.html.twig', [
             'controller_name' => 'RecipeController',
             'datatable' => $table,
-            'form' => $form->createView(),
-            'id' => $id
+            'form' => $form->createView()
         ]);
     }
 
@@ -152,7 +150,7 @@ class RecipeController extends AbstractController
     }
 
     /**
-     * @Route("/admin/recipe/delete/{id}", name="recipe_delete")
+     * @Route("/admin/recipe/delete/{id}", name="recipe_remove")
      */
     public function deleteRecipe(Recipe $recipe, EntityManagerInterface $em): Response
     {
@@ -162,5 +160,41 @@ class RecipeController extends AbstractController
         $em->flush();
 
         return $this->redirectToRoute('recipe');
+    }
+
+    /**
+     * @Route("/admin/recipe/detail/delete/{id}", name="recipe_detail_remove")
+     */
+    public function deleteRecipeDetail(RecipeDetail $recipeDetail, EntityManagerInterface $em): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+        $id = $recipeDetail->getRecipe()->getId();
+        $em->remove($recipeDetail);
+        $em->flush();
+
+        return $this->redirectToRoute('recipe_details', ['id' => $id]);
+    }
+
+    /**
+     * @Route("/panel/recipe/detail/{id}", name="recipe_detail_update")
+     */
+    public function updateRecipeDetail(RecipeDetail $recipeDetail, EntityManagerInterface $em, Request $request): Response
+    {
+        $id = $recipeDetail->getRecipe()->getId();
+        $form = $this->createForm(RecipeDetailType::class, $recipeDetail);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $recipeDetail->setRecipe($this->getDoctrine()->getRepository(Recipe::class)->findOneBy(['id' => $id]));
+            $em->persist($recipeDetail);
+            $em->flush();
+
+            return $this->redirectToRoute('recipe_details', ['id' => $id]);
+        }
+
+        return $this->render('recipe/details/update.html.twig', [
+            'controller_name' => 'RecipeController',
+            'form' => $form->createView()
+        ]);
     }
 }

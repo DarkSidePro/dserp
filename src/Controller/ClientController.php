@@ -35,7 +35,7 @@ class ClientController extends AbstractController
         }
 
         $table = $dataTableFactory->create([])
-            ->add('id', TextColumn::class, ['label' => 'Id', 'className' => 'bold', 'searchable' => true])
+            ->add('id', TextColumn::class, ['label' => '#', 'className' => 'bold', 'searchable' => true])
             ->add('client_name', TextColumn::class, ['label' => 'Client name', 'className' => 'bold', 'searchable' => true])
             ->add('actions', TwigColumn::class, ['label' => 'Actions', 'className' => 'bold', 'searchable' => false, 'template' => 'client/_partials/table/actions.html.twig'])
             ->createAdapter(ORMAdapter::class, [
@@ -52,5 +52,40 @@ class ClientController extends AbstractController
             'form' => $form->createView(),
             'datatable' => $table
         ]);
+    }
+
+    /**
+     * @Route("/panel/client/update/{id}", name="client_update")
+     */
+    public function clientUpdate(Request $request, Client $client, EntityManagerInterface $em): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_USER');
+
+        $form = $this->createForm(ClientType::class, $client);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $em->persist($client);
+            $em->flush();
+
+            return $this->redirectToRoute('client');
+        }
+
+        return $this->render('client/update.html.twig', [
+            'controller_name' => 'ClientController',
+            'form' => $form->createView(),
+        ]);
+    }
+
+    /**
+     * @Route("/admin/client/remove/{id}", name="client_remove")
+     */
+    public function clientRemove(Client $client, EntityManagerInterface $em): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+        $em->remove($client);
+        $em->flush();
+
+        return $this->redirectToRoute('client');
     }
 }

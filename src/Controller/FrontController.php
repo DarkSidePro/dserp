@@ -13,6 +13,8 @@ class FrontController extends AbstractController
      */
     public function index(): Response
     {
+        $this->denyAccessUnlessGranted('ROLE_USER');
+
         return $this->render('front/index.html.twig', [
             'controller_name' => 'FrontController',
         ]);

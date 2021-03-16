@@ -26,7 +26,7 @@ class AnimalController extends AbstractController
         $table = $dataTableFactory->create([])
             ->setMethod(Request::METHOD_GET)
             ->setName('animal')
-            ->add('id', TextColumn::class, ['label' => 'Id', 'className' => 'bold', 'searchable' => true])
+            ->add('id', TextColumn::class, ['label' => '#', 'className' => 'bold', 'searchable' => true])
             ->add('animal_name', TextColumn::class, ['label' => 'Animal name', 'className' => 'bold', 'searchable' => true])
             ->add('actions', TwigColumn::class, ['label' => 'Actions', 'className' => 'bold', 'searchable' => false, 'template' => 'animal/_partials/table/actions.html.twig'])
             ->createAdapter(ORMAdapter::class, [
@@ -55,7 +55,7 @@ class AnimalController extends AbstractController
     }
 
     /**
-     * @Route("/panel/animal/{id}", name="animal_update")
+     * @Route("/panel/animal/update/{id}", name="animal_update")
      */
     public function animalUpdate(Request $request, Animal $animal, EntityManagerInterface $em): Response
     {
@@ -77,7 +77,7 @@ class AnimalController extends AbstractController
     }
 
     /**
-     * @Route("/admin/animal/delete/{id}", name="animal_delete")
+     * @Route("/admin/animal/delete/{id}", name="animal_remove")
      */
     public function deleteAnimal(Animal $animal, EntityManagerInterface $em): Response
     {

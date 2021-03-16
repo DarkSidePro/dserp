@@ -2,10 +2,16 @@
 
 namespace App\Controller;
 
+use App\Entity\Animal;
 use App\Entity\Product;
+use App\Entity\Production;
 use App\Entity\ProductOperation;
+use App\Entity\Shipment;
+use App\Form\ProductOperationType;
 use App\Form\ProductType;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Query;
+use Doctrine\ORM\Query\Expr\Join;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -16,14 +22,46 @@ use Omines\DataTablesBundle\Column\TwigColumn;
 use Omines\DataTablesBundle\Column\DateTimeColumn;
 use Symfony\Component\HttpFoundation\Request;
 use Doctrine\ORM\QueryBuilder;
+use Omines\DataTablesBundle\Adapter\Doctrine\ORM\SearchCriteriaProvider;
+use Omines\DataTablesBundle\Column\NumberColumn;
 
 class ProductController extends AbstractController
 {
     /**
-     * @Route("/panel/product/new", name="product_new")
+     * @Route("/panel/product", name="product")
      */
-    public function newProduct(Request $request, EntityManagerInterface $em): Response
+    public function index(Request $request, DataTableFactory $dataTableFactory, EntityManagerInterface $em): Response
     {
+        $this->denyAccessUnlessGranted('ROLE_USER');
+
+        $table = $dataTableFactory->create([])
+            ->add('id', NumberColumn::class, ['label' => '#', 'className' => 'bold', 'searchable' => true])
+            ->add('product_name', TextColumn::class, ['label' => 'Product name', 'className' => 'bold', 'searchable' => true])
+            ->add('animal_name2', TextColumn::class, ['label' => 'Animal name', 'className' => 'bold', 'searchable' => true, 'render' => function($value, $context) { return $context['animal_name'];}])
+            ->add('operations', NumberColumn::class, ['label' => 'No. operations', 'className' => 'bold', 'searchable' => true])
+            ->add('actions', TwigColumn::class, ['label' => 'Actions', 'className' => 'bold', 'searchable' => true, 'template' => 'product/_partials/table/actions.html.twig'])
+            ->createAdapter(ORMAdapter::class, [
+                'entity' => Product::class,
+                'hydrate' => Query::HYDRATE_ARRAY,
+                'query' => function (QueryBuilder $builder) {
+                    $builder
+                        ->select('p.id')
+                        ->addSelect('p.product_name')
+                        ->addSelect('a.animal_name')
+                        ->addSelect('COUNT(po.id) as operations')
+                        ->from(Product::class, 'p')
+                        ->leftJoin(Animal::class, 'a', Join::WITH, 'p.animal = a.id')
+                        ->leftJoin(ProductOperation::class, 'po', Join::WITH, 'p.id = po.product')
+                        ->groupBy('p.id');
+                }
+            ]);
+            $table->handleRequest($request);
+        
+        
+        if ($table->isCallback()) {
+            return $table->getResponse();
+        } 
+
         $product = new Product;
         $form = $this->createForm(ProductType::class, $product);
         $form->handleRequest($request);
@@ -35,63 +73,50 @@ class ProductController extends AbstractController
             return $this->redirectToRoute('product');
         }
 
-        return $this->render('product/update.html.twig', [
+        return $this->render('product/index.html.twig', [
             'controller_name' => 'ProductController',
-            'product_name' => null,
+            'datatable' => $table,
             'form' => $form->createView()
         ]);
     }
 
     /**
-     * @Route("/panel/product", name="product")
+     * @Route("/panel/product/operations/{id}", name="product_operations")
      */
-    public function index(Request $request, DataTableFactory $dataTableFactory): Response
+    public function viewOperations(
+            Request $request, 
+            DataTableFactory $dataTableFactory, 
+            Product $product, 
+            EntityManagerInterface $em
+        ): Response
     {
-        $table = $dataTableFactory->create([])
-            ->add('id', TextColumn::class, ['label' => 'Id', 'className' => 'bold', 'searchable' => true])
-            ->add('animal_name', TextColumn::class, ['label' => 'Animal name', 'className' => 'bold', 'searchable' => true, 'field' => 'animal.animal_name', 'orderField' => 'animal.animal_name'])
-            ->add('product_name', TextColumn::class, ['label' => 'Product name', 'className' => 'bold', 'searchable' => true])
-            ->add('productOperations', TextColumn::class, ['label' => 'No. product operations', 'className' => 'bold', 'searchable' => true])
-            ->add('actions', TwigColumn::class, ['label' => 'Actions', 'className' => 'bold', 'searchable' => true, 'template' => 'product/_partials/table/actions.html.twig'])
-            ->createAdapter(ORMAdapter::class, [
-                'entity' => Product::class
-            ]);
-            $table->handleRequest($request);
+        $this->denyAccessUnlessGranted('ROLE_USER');
         
-        
-        if ($table->isCallback()) {
-            return $table->getResponse();
-        } 
-
-        return $this->render('product/index.html.twig', [
-            'controller_name' => 'ProductController',
-            'datatable' => $table
-        ]);
-    }
-
-    /**
-     * @Route("/panel/product/{id}/operations", name="product_operations")
-     */
-    public function viewOperations(Request $request, DataTableFactory $dataTableFactory, Product $product, $id): Response
-    {
         $table = $dataTableFactory->create([])
-            ->add('id', TextColumn::class, ['label' => 'id', 'className' => 'bold', 'searchable' => true])
-            ->add('enter', TextColumn::class, ['label' => 'Enter', 'className' => 'bold', 'searchable' => true])
-            ->add('exit', TextColumn::class, ['label' => 'Exit', 'className' => 'bold', 'searchable' => true])
-            ->add('modification', TextColumn::class, ['label' => 'Modification', 'className' => 'bold', 'searchable' => true])
-            ->add('shipment', TextColumn::class, ['label' => 'Shipment', 'className' => 'bold', 'searchable' => true])
-            ->add('state', TextColumn::class, ['label' => 'State', 'className' => 'bold', 'searchable' => true])
+            ->add('id', NumberColumn::class, ['label' => '#', 'className' => 'bold', 'searchable' => true])
+            ->add('enter', NumberColumn::class, ['label' => 'Enter', 'className' => 'bold', 'searchable' => true])
+            ->add('dispatch', NumberColumn::class, ['label' => 'Dispatch', 'className' => 'bold', 'searchable' => true])
+            ->add('modification', NumberColumn::class, ['label' => 'Modification', 'className' => 'bold', 'searchable' => true])
+            ->add('shipment', NumberColumn::class, ['label' => 'Shipment', 'className' => 'bold', 'searchable' => true])
+            ->add('state', NumberColumn::class, ['label' => 'State', 'className' => 'bold', 'searchable' => true])
             ->add('datestamp', DateTimeColumn::class, ['label' => 'Created', 'className' => 'bold', 'searchable' => true, 'format' => 'Y-m-d H:i:s'])
-            ->add('actions', TwigColumn::class, ['label' => 'Actions', 'className' => 'bold', 'searchable' => true, 'template' => 'product/_partials/table/operations/actions.html.twig'])
+            ->add('actions', TwigColumn::class, ['label' => 'Actions', 'className' => 'bold', 'searchable' => true, 'template' => 'product/operations/_partials/table/actions.html.twig'])
             ->createAdapter(ORMAdapter::class, [
                 'entity' => ProductOperation::class,
-                'query' => function (QueryBuilder $builder) use ($id) {
+                'query' => function (QueryBuilder $builder) use ($product) {
                     $builder
                         ->select('p')
+                        ->addSelect('s')
                         ->from(ProductOperation::class, 'p')
-                        ->where('p.product ='.$id)
+                        ->leftJoin('p.shipment_id', 's');
                     ;
-                }
+                },
+                'criteria' => [
+                    function (QueryBuilder $builder) use ($product) {
+                        $builder->andWhere($builder->expr()->eq('p.product', ':product'))->setParameter('product', $product->getId());
+                    },
+                    new SearchCriteriaProvider(),
+                ]
             ]);
             $table->handleRequest($request); 
         
@@ -100,18 +125,34 @@ class ProductController extends AbstractController
             return $table->getResponse();
         } 
 
+        $productOperation = new ProductOperation;
+        $form = $this->createForm(ProductOperationType::class, $productOperation);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $productOperation->setProduct($product);
+            $productOperation->setDatestamp(new \DateTime);
+            $em->persist($productOperation);
+            $em->flush();
+
+            return $this->redirectToRoute('product_operations', ['id' => $product->getId()]);
+        }
+
         return $this->render('product/operations/index.html.twig', [
             'controller_name' => 'ProductController',
             'datatable' => $table,
-            'product_name' => $product->getProductName()
+            'product_name' => $product->getProductName(),
+            'form' => $form->createView()
         ]);
     }
 
     /**
-     * @Route("/panel/product/{id}", name="product_update")
+     * @Route("/panel/product/update/{id}", name="product_update")
      */
     public function updateProduct(Request $request, Product $product, EntityManagerInterface $em): Response
     {
+        $this->denyAccessUnlessGranted('ROLE_USER');
+
         $form = $this->createForm(ProductType::class, $product);
         $form->handleRequest($request);
 
@@ -129,7 +170,7 @@ class ProductController extends AbstractController
     }
 
     /**
-     * @Route("/admin/product/delete/{id}", name="product_delete")
+     * @Route("/admin/product/delete/{id}", name="product_remove")
      */
     public function deleteProduct(Product $product, EntityManagerInterface $em): Response
     {
@@ -139,5 +180,44 @@ class ProductController extends AbstractController
         $em->flush();
 
         return $this->redirectToRoute('product');
+    }
+
+    /**
+     * @Route("/panel/product/operation/update/{id}", name="product_operation_update")
+     */
+    public function productOperationUpdate(
+            ProductOperation $productOperation, 
+            Request $request, 
+            EntityManagerInterface $em
+        ): Response
+    {
+        $form = $this->createForm(ProductOperationType::class, $productOperation);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $em->persist($productOperation);
+            $em->flush();
+
+            return $this->redirectToRoute('product_operations', ['id' => $productOperation->getProduct()->getId()]);
+        }
+
+        return $this->render('product/operation/update.html.twig', [
+            'controller_name' => 'ProductController',
+            'form' => $form->createView(),
+            'product_name' => $productOperation->getProduct()->getProductName()
+        ]);
+    }
+
+    /**
+     * @Route("/admin/product/operation/remove/{id}", name="product_operation_remove")
+     */
+    public function produuctOperationRemove(ProductOperation $productOperation, EntityManagerInterface $em): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        $em->remove($productOperation);
+        $em->flush();
+
+        return $this->redirectToRoute('product_operations', ['id' => $productOperation->getProduct()->getId()]);
     }
 }
