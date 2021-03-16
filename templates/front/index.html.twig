@@ -1,1 +1,31 @@
 {% extends "_partials/body.html.twig" %}
+{% block content %}
+    <div class='col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12'>
+        <div class='card'>
+            <div class='card-body'>
+                <a href='{{ path('product') }}'>
+                    <h1 class='card-title'>Werehouse</h1>
+                </a>
+            </div>
+        </div>
+        <div class='card'>
+            <div class='card-body'>
+                <h1 class='card-title'>Delivery</h1>
+            </div>
+        </div>
+        <div class='card'>
+            <div class='card-body'>
+                <a href='{{ path('production') }}'>
+                    <h1 class='card-title'>Production</h1>
+                </a>
+            </div>
+        </div>
+        <div class='card'>
+            <div class='card-body'> 
+                <a href='{{ path('shipment') }}'>
+                    <h1 class='card-title'>Shipment</h1>
+                </a>
+            </div>
+        </div>
+    </div>
+{% endblock %}

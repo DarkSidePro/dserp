@@ -1,0 +1,8 @@
+<div class="btn-group ml-auto">
+    {% if is_granted('ROLE_ADMIN') %}
+        <a href="{{ path('admin_member_update', {'id': row.id }) }}" class="btn btn-sm btn-outline-light">Edit</a>
+        <button data-id="{{ row.id }}" class="btn btn-sm btn-outline-light remove">
+            <i class="far fa-trash-alt"></i>
+        </button>
+    {% endif %}
+</div>

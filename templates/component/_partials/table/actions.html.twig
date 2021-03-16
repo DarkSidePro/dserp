@@ -1,0 +1,7 @@
+<div class="btn-group ml-auto">
+    <a href="{{ path('component_update', {'id': row.id }) }}" class="btn btn-sm btn-outline-light">Edit</a>
+    <a href="{{ path('component_view', {'id': row.id }) }}" class="btn btn-sm btn-outline-light">View operations</a>
+    <a href="{{ path('component_remove', {'id': row.id }) }}" class="btn btn-sm btn-outline-light remove">
+        <i class="far fa-trash-alt"></i>
+    </a>
+</div>

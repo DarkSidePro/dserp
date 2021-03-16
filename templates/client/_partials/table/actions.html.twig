@@ -1,6 +1,8 @@
 <div class="btn-group ml-auto">
-    <a href="" class="btn btn-sm btn-outline-light">Edit</a>
-    <a href="" class="btn btn-sm btn-outline-light remove">
-        <i class="far fa-trash-alt"></i>
-    </a>
+    {% if is_granted('ROLE_ADMIN') %}
+        <a href="{{ path('client_update', {'id': row.id }) }}" class="btn btn-sm btn-outline-light">Edit</a>
+        <a href="{{ path('client_remove', {'id': row.id }) }}" class="btn btn-sm btn-outline-light remove">
+            <i class="far fa-trash-alt"></i>
+        </a>
+    {% endif %}
 </div>

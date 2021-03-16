@@ -1,0 +1,12 @@
+<div class="ml-auto">
+    <div class='btn-group'>
+        <a href="{{ path('component_operation_update', {'id': row.id }) }}" class="btn btn-sm btn-outline-light">Edit</a>
+        <a href="{{ path('component_operation_remove', {'id': row.id }) }}" class="btn btn-sm btn-outline-light remove">
+            <i class="far fa-trash-alt"></i>
+        </a>
+    </div>
+    <div class='btn-group'>
+        <a href="{{ path('component_update', {'id': row.id }) }}" class="btn btn-sm btn-outline-light">View production</a>
+        <a href="{{ path('component_update', {'id': row.id }) }}" class="btn btn-sm btn-outline-light">View shipment</a>
+    </div>
+</div>

@@ -45,9 +45,15 @@
                 select: true,
                 searching: true,
                 dom: 'lBfrtip',
-                buttons: [
-                    'copy', 'csv', 'excel', 'pdf', 'print'
-                ]
+                buttons: {
+                    buttons: [
+                        { extend: 'copy', className: 'btn btn-transparent' },
+                        { extend: 'csv', className: 'btn btn-transparent'},
+                        { extend: 'excel', className: 'btn btn-transparent'},
+                        { extend: 'pdf', className: 'btn btn-transparent'},
+                        { extend: 'print', className: 'btn btn-transparent'},
+                    ]
+                },
             });            
         });
     </script> 
