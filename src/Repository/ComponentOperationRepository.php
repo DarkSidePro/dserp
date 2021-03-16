@@ -47,4 +47,15 @@ class ComponentOperationRepository extends ServiceEntityRepository
         ;
     }
     */
+
+    public function findLastState($value): ?ComponentOperation
+    {
+        return $this->createQueryBuilder('c')
+            ->andWhere('c.component = :val')
+            ->orderBy('c.id', 'DESC')
+            ->setMaxResults(1)
+            ->setParameter('val', 1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 }
