@@ -31,7 +31,7 @@ class ComponentOperation
     /**
      * @ORM\Column(type="decimal", precision=10, scale=2, nullable=true)
      */
-    private $exit;
+    private $dispatch;
 
     /**
      * @ORM\Column(type="decimal", precision=10, scale=2, nullable=true)
@@ -44,19 +44,9 @@ class ComponentOperation
     private $production;
 
     /**
-     * @ORM\ManyToOne(targetEntity=Production::class, inversedBy="componentOperations")
-     */
-    private $Production;
-
-    /**
-     * @ORM\Column(type="decimal", precision=10, scale=2)
+     * @ORM\Column(type="decimal", precision=10, scale=2, nullable=true)
      */
     private $shipment;
-
-    /**
-     * @ORM\ManyToOne(targetEntity=Shipment::class, inversedBy="componentOperations")
-     */
-    private $Shipment;
 
     /**
      * @ORM\Column(type="decimal", precision=10, scale=2)
@@ -67,6 +57,16 @@ class ComponentOperation
      * @ORM\Column(type="datetime")
      */
     private $datestamp;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=Production::class, inversedBy="componentOperations")
+     */
+    private $production_id;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=Shipment::class, inversedBy="componentOperations")
+     */
+    private $shipment_id;
 
     public function getId(): ?int
     {
@@ -97,14 +97,14 @@ class ComponentOperation
         return $this;
     }
 
-    public function getExit(): ?string
+    public function getDispatch(): ?string
     {
-        return $this->exit;
+        return $this->dispatch;
     }
 
-    public function setExit(?string $exit): self
+    public function setDispatch(?string $dispatch): self
     {
-        $this->exit = $exit;
+        $this->dispatch = $dispatch;
 
         return $this;
     }
@@ -165,6 +165,30 @@ class ComponentOperation
     public function setDatestamp(\DateTimeInterface $datestamp): self
     {
         $this->datestamp = $datestamp;
+
+        return $this;
+    }
+
+    public function getProductionId(): ?Production
+    {
+        return $this->production_id;
+    }
+
+    public function setProductionId(?Production $production_id): self
+    {
+        $this->production_id = $production_id;
+
+        return $this;
+    }
+
+    public function getShipmentId(): ?Shipment
+    {
+        return $this->shipment_id;
+    }
+
+    public function setShipmentId(?Shipment $shipment_id): self
+    {
+        $this->shipment_id = $shipment_id;
 
         return $this;
     }

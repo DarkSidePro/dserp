@@ -30,14 +30,19 @@ class Shipment
     private $shipmentClients;
 
     /**
-     * @ORM\OneToMany(targetEntity=ComponentOperation::class, mappedBy="Shipment")
+     * @ORM\OneToMany(targetEntity=ComponentOperation::class, mappedBy="shipment_id")
      */
     private $componentOperations;
 
     /**
-     * @ORM\OneToMany(targetEntity=ProductOperation::class, mappedBy="Shipment")
+     * @ORM\OneToMany(targetEntity=ProductOperation::class, mappedBy="shipment_id")
      */
     private $productOperations;
+
+    /**
+     * @ORM\Column(type="string", length=50, nullable=true)
+     */
+    private $reference;
 
     public function __construct()
     {
@@ -105,7 +110,7 @@ class Shipment
     {
         if (!$this->componentOperations->contains($componentOperation)) {
             $this->componentOperations[] = $componentOperation;
-            $componentOperation->setShipment($this);
+            $componentOperation->setShipmentId($this);
         }
 
         return $this;
@@ -115,8 +120,8 @@ class Shipment
     {
         if ($this->componentOperations->removeElement($componentOperation)) {
             // set the owning side to null (unless already changed)
-            if ($componentOperation->getShipment() === $this) {
-                $componentOperation->setShipment(null);
+            if ($componentOperation->getShipmentId() === $this) {
+                $componentOperation->setShipmentId(null);
             }
         }
 
@@ -135,7 +140,7 @@ class Shipment
     {
         if (!$this->productOperations->contains($productOperation)) {
             $this->productOperations[] = $productOperation;
-            $productOperation->setShipment($this);
+            $productOperation->setShipmentId($this);
         }
 
         return $this;
@@ -145,10 +150,22 @@ class Shipment
     {
         if ($this->productOperations->removeElement($productOperation)) {
             // set the owning side to null (unless already changed)
-            if ($productOperation->getShipment() === $this) {
-                $productOperation->setShipment(null);
+            if ($productOperation->getShipmentId() === $this) {
+                $productOperation->setShipmentId(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getReference(): ?string
+    {
+        return $this->reference;
+    }
+
+    public function setReference(?string $reference): self
+    {
+        $this->reference = $reference;
 
         return $this;
     }

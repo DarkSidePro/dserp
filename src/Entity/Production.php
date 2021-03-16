@@ -42,24 +42,29 @@ class Production
     private $datestamp;
 
     /**
-     * @ORM\OneToMany(targetEntity=ComponentOperation::class, mappedBy="Production")
-     */
-    private $componentOperations;
-
-    /**
      * @ORM\OneToMany(targetEntity=ProductionDetail::class, mappedBy="production")
      */
     private $productionDetails;
 
     /**
-     * @ORM\OneToMany(targetEntity=ProductOperation::class, mappedBy="Production")
+     * @ORM\OneToMany(targetEntity=ComponentOperation::class, mappedBy="production_id")
+     */
+    private $componentOperations;
+
+    /**
+     * @ORM\OneToMany(targetEntity=ProductOperation::class, mappedBy="production_id")
      */
     private $productOperations;
 
+    /**
+     * @ORM\Column(type="string", length=50, nullable=true)
+     */
+    private $reference;
+
     public function __construct()
     {
-        $this->componentOperations = new ArrayCollection();
         $this->productionDetails = new ArrayCollection();
+        $this->componentOperations = new ArrayCollection();
         $this->productOperations = new ArrayCollection();
     }
 
@@ -117,36 +122,6 @@ class Production
     }
 
     /**
-     * @return Collection|ComponentOperation[]
-     */
-    public function getComponentOperations(): Collection
-    {
-        return $this->componentOperations;
-    }
-
-    public function addComponentOperation(ComponentOperation $componentOperation): self
-    {
-        if (!$this->componentOperations->contains($componentOperation)) {
-            $this->componentOperations[] = $componentOperation;
-            $componentOperation->setProduction($this);
-        }
-
-        return $this;
-    }
-
-    public function removeComponentOperation(ComponentOperation $componentOperation): self
-    {
-        if ($this->componentOperations->removeElement($componentOperation)) {
-            // set the owning side to null (unless already changed)
-            if ($componentOperation->getProduction() === $this) {
-                $componentOperation->setProduction(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
      * @return Collection|ProductionDetail[]
      */
     public function getProductionDetails(): Collection
@@ -177,6 +152,36 @@ class Production
     }
 
     /**
+     * @return Collection|ComponentOperation[]
+     */
+    public function getComponentOperations(): Collection
+    {
+        return $this->componentOperations;
+    }
+
+    public function addComponentOperation(ComponentOperation $componentOperation): self
+    {
+        if (!$this->componentOperations->contains($componentOperation)) {
+            $this->componentOperations[] = $componentOperation;
+            $componentOperation->setProductionId($this);
+        }
+
+        return $this;
+    }
+
+    public function removeComponentOperation(ComponentOperation $componentOperation): self
+    {
+        if ($this->componentOperations->removeElement($componentOperation)) {
+            // set the owning side to null (unless already changed)
+            if ($componentOperation->getProductionId() === $this) {
+                $componentOperation->setProductionId(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
      * @return Collection|ProductOperation[]
      */
     public function getProductOperations(): Collection
@@ -188,7 +193,7 @@ class Production
     {
         if (!$this->productOperations->contains($productOperation)) {
             $this->productOperations[] = $productOperation;
-            $productOperation->setProduction($this);
+            $productOperation->setProductionId($this);
         }
 
         return $this;
@@ -198,10 +203,22 @@ class Production
     {
         if ($this->productOperations->removeElement($productOperation)) {
             // set the owning side to null (unless already changed)
-            if ($productOperation->getProduction() === $this) {
-                $productOperation->setProduction(null);
+            if ($productOperation->getProductionId() === $this) {
+                $productOperation->setProductionId(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getReference(): ?string
+    {
+        return $this->reference;
+    }
+
+    public function setReference(?string $reference): self
+    {
+        $this->reference = $reference;
 
         return $this;
     }

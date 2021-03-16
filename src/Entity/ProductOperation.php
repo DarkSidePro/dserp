@@ -31,7 +31,7 @@ class ProductOperation
     /**
      * @ORM\Column(type="decimal", precision=10, scale=2, nullable=true)
      */
-    private $exit;
+    private $dispatch;
 
     /**
      * @ORM\Column(type="decimal", precision=10, scale=2, nullable=true)
@@ -54,14 +54,19 @@ class ProductOperation
     private $datestamp;
 
     /**
-     * @ORM\ManyToOne(targetEntity=Shipment::class, inversedBy="productOperations")
-     */
-    private $Shipment;
-
-    /**
      * @ORM\ManyToOne(targetEntity=Production::class, inversedBy="productOperations")
      */
-    private $Production;
+    private $production_id;
+
+    /**
+     * @ORM\ManyToOne(targetEntity=Shipment::class, inversedBy="productOperations")
+     */
+    private $shipment_id;
+
+    /**
+     * @ORM\Column(type="decimal", precision=10, scale=2, nullable=true)
+     */
+    private $shipment;
 
     public function getId(): ?int
     {
@@ -92,14 +97,14 @@ class ProductOperation
         return $this;
     }
 
-    public function getExit(): ?string
+    public function getDispatch(): ?string
     {
-        return $this->exit;
+        return $this->dispatch;
     }
 
-    public function setExit(?string $exit): self
+    public function setDispatch(?string $dispatch): self
     {
-        $this->exit = $exit;
+        $this->dispatch = $dispatch;
 
         return $this;
     }
@@ -152,14 +157,38 @@ class ProductOperation
         return $this;
     }
 
-    public function getShipment(): ?Shipment
+    public function getProductionId(): ?Production
     {
-        return $this->Shipment;
+        return $this->production_id;
     }
 
-    public function setShipment(?Shipment $Shipment): self
+    public function setProductionId(?Production $production_id): self
     {
-        $this->Shipment = $Shipment;
+        $this->production_id = $production_id;
+
+        return $this;
+    }
+
+    public function getShipmentId(): ?Shipment
+    {
+        return $this->shipment_id;
+    }
+
+    public function setShipmentId(?Shipment $shipment_id): self
+    {
+        $this->shipment_id = $shipment_id;
+
+        return $this;
+    }
+
+    public function getShipment(): ?string
+    {
+        return $this->shipment;
+    }
+
+    public function setShipment(?string $shipment): self
+    {
+        $this->shipment = $shipment;
 
         return $this;
     }
