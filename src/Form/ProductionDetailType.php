@@ -3,34 +3,28 @@
 namespace App\Form;
 
 use App\Entity\Component;
-use App\Entity\Recipe;
-use App\Entity\RecipeDetail;
+use App\Entity\ProductionDetail;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\Extension\Core\Type\NumberType;
+use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Component\Validator\Constraints\NotBlank;
 
-class RecipeDetailType extends AbstractType
+class ProductionDetailType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
-            ->add('amount', NumberType::class, [
-                'constraints' => [
-                    new NotBlank([
-                        'message' => 'Please enter amount',
-                    ]),
-                ]
+            ->add('value', IntegerType::class, [
+                
             ])
             ->add('component', EntityType::class, [
                 'class' => Component::class,
                 'choice_label' => 'component_name'
             ])
             ->add('save', SubmitType::class, [
-                'attr' => ['class' => 'btn btn-success'] 
+                'attr' => ['class' => 'btn btn-success']
             ])
         ;
     }
@@ -38,7 +32,7 @@ class RecipeDetailType extends AbstractType
     public function configureOptions(OptionsResolver $resolver)
     {
         $resolver->setDefaults([
-            'data_class' => RecipeDetail::class,
+            'data_class' => ProductionDetail::class,
         ]);
     }
 }
