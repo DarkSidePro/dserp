@@ -99,6 +99,18 @@
     "nikic/php-parser": {
         "version": "v4.10.4"
     },
+    "omines/datatables-bundle": {
+        "version": "0.1",
+        "recipe": {
+            "repo": "github.com/symfony/recipes-contrib",
+            "branch": "master",
+            "version": "0.1",
+            "ref": "467488ddc00aa190c37a4357f226457d4dd6b339"
+        },
+        "files": [
+            "./config/packages/datatables.yaml"
+        ]
+    },
     "phpdocumentor/reflection-common": {
         "version": "2.2.0"
     },
@@ -130,6 +142,18 @@
         },
         "files": [
             "./config/packages/sensio_framework_extra.yaml"
+        ]
+    },
+    "symfony/apache-pack": {
+        "version": "1.0",
+        "recipe": {
+            "repo": "github.com/symfony/recipes-contrib",
+            "branch": "master",
+            "version": "1.0",
+            "ref": "71599f5b0fdeeeec0fb90e9b17c85e6f5e1350c1"
+        },
+        "files": [
+            "./public/.htaccess"
         ]
     },
     "symfony/asset": {
@@ -177,9 +201,6 @@
         "files": [
             "./config/packages/dev/debug.yaml"
         ]
-    },
-    "symfony/debug-pack": {
-        "version": "v1.0.9"
     },
     "symfony/dependency-injection": {
         "version": "v4.4.19"
@@ -313,9 +334,6 @@
     "symfony/options-resolver": {
         "version": "v4.4.19"
     },
-    "symfony/orm-pack": {
-        "version": "v2.1.0"
-    },
     "symfony/phpunit-bridge": {
         "version": "5.1",
         "recipe": {
@@ -354,9 +372,6 @@
     },
     "symfony/process": {
         "version": "v4.4.19"
-    },
-    "symfony/profiler-pack": {
-        "version": "v1.0.5"
     },
     "symfony/property-access": {
         "version": "v4.4.19"
@@ -408,17 +423,11 @@
     "symfony/serializer": {
         "version": "v4.4.19"
     },
-    "symfony/serializer-pack": {
-        "version": "v1.0.4"
-    },
     "symfony/service-contracts": {
         "version": "v2.2.0"
     },
     "symfony/stopwatch": {
         "version": "v4.4.19"
-    },
-    "symfony/test-pack": {
-        "version": "v1.0.7"
     },
     "symfony/translation": {
         "version": "3.3",
@@ -452,9 +461,6 @@
             "./config/packages/twig.yaml",
             "./templates/base.html.twig"
         ]
-    },
-    "symfony/twig-pack": {
-        "version": "v1.0.1"
     },
     "symfony/validator": {
         "version": "4.3",
@@ -494,6 +500,18 @@
     },
     "symfony/yaml": {
         "version": "v4.4.19"
+    },
+    "symfonycasts/reset-password-bundle": {
+        "version": "1.0",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "master",
+            "version": "1.0",
+            "ref": "97c1627c0384534997ae1047b93be517ca16de43"
+        },
+        "files": [
+            "./config/packages/reset_password.yaml"
+        ]
     },
     "twig/extra-bundle": {
         "version": "v3.3.0"
