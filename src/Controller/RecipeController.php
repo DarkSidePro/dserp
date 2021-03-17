@@ -68,15 +68,18 @@ class RecipeController extends AbstractController
     /**
      * @Route("/panel/recipe/details/{id}", name="recipe_details")
      */
-    public function recipeDetails(Request $request, DataTableFactory $dataTableFactory, $id, EntityManagerInterface $em): Response
+    public function recipeDetails(
+            Request $request, 
+            DataTableFactory $dataTableFactory, $id, 
+            EntityManagerInterface $em,
+            Recipe $recipe
+        ): Response
     {
         $this->denyAccessUnlessGranted('ROLE_USER');
         
         $this->tmpId = $id;
 
         $table = $dataTableFactory->create([])
-            ->add('recipe', TextColumn::class, ['field' => 'r.recipe_name', 'label' => 'Recipe name', 'className' => 'bold', 'searchable' => true])
-            ->add('product_name', TextColumn::class, ['label' => 'Product name', 'className' => 'bold', 'searchable' => true, 'field' => 'p.product_name'])
             ->add('amount', TextColumn::class, ['label' => 'Amount', 'className' => 'bold', 'searchable' => true])
             ->add('component', TextColumn::class, ['label' => 'Component name', 'className' => 'bold', 'searchable' => true, 'field' => 'c.component_name'])
             ->add('actions', TwigColumn::class, ['label' => 'Actions', 'className' => 'bold', 'searchable' => true, 'template' => 'recipe/details/_partials/table/actions.html.twig'])
@@ -122,7 +125,9 @@ class RecipeController extends AbstractController
         return $this->render('recipe/details/index.html.twig', [
             'controller_name' => 'RecipeController',
             'datatable' => $table,
-            'form' => $form->createView()
+            'form' => $form->createView(),
+            'recipe_name' => $recipe->getRecipeName(),
+            'product_name' => $recipe->getProduct()->getProductName()
         ]);
     }
 

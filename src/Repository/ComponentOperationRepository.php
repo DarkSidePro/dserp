@@ -54,7 +54,7 @@ class ComponentOperationRepository extends ServiceEntityRepository
             ->andWhere('c.component = :val')
             ->orderBy('c.id', 'DESC')
             ->setMaxResults(1)
-            ->setParameter('val', 1)
+            ->setParameter('val', $value)
             ->getQuery()
             ->getOneOrNullResult();
     }

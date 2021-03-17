@@ -167,6 +167,11 @@ body {
     -webkit-font-smoothing: antialiased;
 }
 
+.dataTables_wrapper .dataTables_paginate .paginate_button.current,
+.dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+    background: transparent !important;
+}
+
 h1,
 h2,
 h3,
