@@ -103,17 +103,24 @@ class ProductController extends AbstractController
             ->add('actions', TwigColumn::class, ['label' => 'Actions', 'className' => 'bold', 'searchable' => true, 'template' => 'product/operations/_partials/table/actions.html.twig'])
             ->createAdapter(ORMAdapter::class, [
                 'entity' => ProductOperation::class,
+                'hydrate' => Query::HYDRATE_ARRAY,
                 'query' => function (QueryBuilder $builder) use ($product) {
-                    $builder
-                        ->select('p')
-                        ->addSelect('s')
-                        ->from(ProductOperation::class, 'p')
-                        ->leftJoin('p.shipment_id', 's');
-                    ;
+                    $builder->select('po.id');
+                    $builder->addSelect('po.enter');
+                    $builder->addSelect('po.modification');
+                    $builder->addSelect('po.production');
+                    $builder->addSelect('po.state');
+                    $builder->addSelect('po.datestamp');
+                    $builder->addSelect('s.id as shipment_id');
+                    $builder->addSelect('p.id as production_id');
+                    $builder->from(ProductOperation::class, 'po');
+                    $builder->leftJoin(Shipment::class, 's', Join::WITH, 's.id = po.shipment_id');
+                    $builder->leftJoin(Production::class, 'p', Join::WITH, 'p.id = po.production_id');
+                    
                 },
                 'criteria' => [
                     function (QueryBuilder $builder) use ($product) {
-                        $builder->andWhere($builder->expr()->eq('p.product', ':product'))->setParameter('product', $product->getId());
+                        $builder->andWhere($builder->expr()->eq('po.product', ':product'))->setParameter('product', $product->getId());
                     },
                     new SearchCriteriaProvider(),
                 ]
@@ -130,6 +137,34 @@ class ProductController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $mod = $form->get('modification')->getData();
+            
+            $builider = new QueryBuilder($em);
+            $builider->select('po.state');
+            $builider->from(Product::class, 'p');
+            $builider->leftJoin(ProductOperation::class, 'po', Join::WITH, 'po.product = p.id AND NOT EXISTS (SELECT 1 FROM App\Entity\ProductOperation p1 WHERE p1.product = p.id AND p1.id > po.id)'); 
+            $builider->groupBy('po.id');
+            $builider->where('po.product = '.$product->getId());
+            $oldState = $builider->getQuery()->setMaxResults(1)->getResult(Query::HYDRATE_ARRAY);
+            $oldState = $oldState['0']['state'];
+
+            if ($mod < 0) {
+                $newState = (float) $oldState + (float)$mod;
+
+                if ($newState < 0) {
+                    return $this->redirectToRoute('product_operations', ['id' => $product->getId()]);
+                } else {
+                    $productOperation->setState($newState);
+                }
+            } else {
+                $newState = (float) $oldState + (float) $mod;
+
+                if ($newState < 0) {
+                    return $this->redirectToRoute('product_operations', ['id' => $product->getId()]);
+                } else {
+                    $productOperation->setState($newState);
+                }
+            }
             $productOperation->setProduct($product);
             $productOperation->setDatestamp(new \DateTime);
             $em->persist($productOperation);
@@ -165,7 +200,8 @@ class ProductController extends AbstractController
 
         return $this->render('product/update.html.twig', [
             'controller_name' => 'ProductController',
-            'product_name' => $product->getProductName()
+            'product_name' => $product->getProductName(),
+            'form' => $form->createView()
         ]);
     }
 
