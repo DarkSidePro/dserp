@@ -21,6 +21,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Omines\DataTablesBundle\Adapter\Doctrine\ORMAdapter;
 use Doctrine\ORM\QueryBuilder;
 use Omines\DataTablesBundle\Adapter\Doctrine\FetchJoinORMAdapter;
+use Omines\DataTablesBundle\Adapter\Doctrine\ORM\SearchCriteriaProvider;
 use Omines\DataTablesBundle\Column\DateTimeColumn;
 use Omines\DataTablesBundle\Column\NumberColumn;
 use Symfony\Component\Validator\Constraints\Date;
@@ -92,15 +93,25 @@ class ComponentController extends AbstractController
                 'entity' => ComponentOperation::class,
                 'hydrate' => Query::HYDRATE_ARRAY,
                 'query' => function (QueryBuilder $builder) {
-                    $builder->select('co');
+                    $builder->select('co.id');
+                    $builder->addSelect('co.enter');
+                    $builder->addSelect('co.modification');
+                    $builder->addSelect('co.production');
+                    $builder->addSelect('co.state');
+                    $builder->addSelect('co.datestamp');
                     $builder->from(ComponentOperation::class, 'co');
-                    $builder->leftJoin('co.component', 'c');
-                    $builder->addSelect('c');
-                    $builder->leftJoin('co.production_id', 'p');
-                    $builder->addSelect('p');
-                    $builder->leftJoin('co.shipment_id', 's');
-                    $builder->addSelect('s');
+                    $builder->leftJoin(Production::class, 'p', Join::WITH,'p.id = co.production_id');
+                    $builder->addSelect('p.id as production_id');
+                    $builder->leftJoin(Shipment::class, 's', Join::WITH, 's.id = co.shipment_id');
+                    $builder->addSelect('s.id as shipment_id');
                 },
+                'criteria' => [
+                    function (QueryBuilder $builder) use ($component) {
+                        $builder->andWhere($builder->expr()->eq('co.component', ':component'))->setParameter('component', $component->getId());
+                    },
+                    new SearchCriteriaProvider(),
+                ]
+
             ]);
         $table->handleRequest($request);
         
@@ -113,10 +124,41 @@ class ComponentController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $mod = $form->get('modification')->getData();
+            
+            $builider = new QueryBuilder($em);
+            $builider->select('co.state');
+            $builider->from(Component::class, 'c');
+            $builider->leftJoin(ComponentOperation::class, 'co', Join::WITH, 'co.component = c.id AND NOT EXISTS (SELECT 1 FROM App\Entity\ComponentOperation p1 WHERE p1.component = c.id AND p1.id > co.id)'); 
+            $builider->groupBy('c.id');
+            $builider->where('c.id = '.$component->getId());
+            $oldState = $builider->getQuery()->setMaxResults(1)->getResult(Query::HYDRATE_ARRAY);
+            $oldState = $oldState['0']['state'];
+
+            if ($mod < 0) {
+                $newState = (float) $oldState - (float)$mod;
+
+                if ($newState < 0) {
+                    return $this->redirectToRoute('component_view', ['id' => $component->getId()]);
+                } else {
+                    $componentOperation->setState($newState);
+                }
+            } else {
+                $newState = (float) $oldState + (float) $mod;
+
+                if ($newState < 0) {
+                    return $this->redirectToRoute('component_view', ['id' => $component->getId()]);
+                } else {
+                    $componentOperation->setState($newState);
+                }
+            }
+
             $componentOperation->setComponent($component);
             $componentOperation->setDatestamp(new \DateTime);
             $em->persist($componentOperation);
             $em->flush();
+            
+            return $this->redirectToRoute('component_view', ['id' => $component->getId()]);
         }
 
         return $this->render('component/operations/index.html.twig', [
