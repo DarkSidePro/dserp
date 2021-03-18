@@ -1,16 +1,16 @@
 <div class="btn-group ml-auto">
-    {% if is_granted('ROLE_ADMIN') %}
+    {# % if is_granted('ROLE_ADMIN') %}
         <a href="{{ path('product_operation_update', {'id': row.id }) }}" class="btn btn-sm btn-outline-light">Edit</a>
+    {% endif % #}
+    {% if row.production_id != null %}
+        <a href='{{ path('production_operations', {'id': row.production_id }) }}' class="btn btn-sm btn-outline-light">View production</a>
     {% endif %}
-    {% if row.ProductionId.id != null %}
-        <a href='{{ path('production_operations', {'id': row.ProductionId.id }) }}' class="btn btn-sm btn-outline-light">View production</a>
+    {% if row.shipment_id != null %}
+        <a href='{{ path('shipment_details', {'id': row.shipment_id }) }}' class="btn btn-sm btn-outline-light">View shipment</a>
     {% endif %}
-    {% if row.ShipmentId.id != null %}
-        <a href='{{ path('shipment_details', {'id': row.ShipmentId.id }) }}' class="btn btn-sm btn-outline-light">View shipment</a>
-    {% endif %}
-    {% if is_granted('ROLE_ADMIN') %}
+    {# % if is_granted('ROLE_ADMIN') %}
         <a href='{{ path('product_operation_remove', {'id': row.id }) }}' class="btn btn-sm btn-outline-light remove">
             <i class="far fa-trash-alt"></i>
         </a>
-    {% endif %}
+    {% endif % #}
 </div>
