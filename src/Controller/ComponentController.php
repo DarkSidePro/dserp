@@ -117,6 +117,8 @@ class ComponentController extends AbstractController
             $componentOperation->setDatestamp(new \DateTime);
             $em->persist($componentOperation);
             $em->flush();
+
+            return $this->redirectToRoute('component');
         }
 
         return $this->render('component/operations/index.html.twig', [
