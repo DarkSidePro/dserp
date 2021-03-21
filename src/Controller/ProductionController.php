@@ -161,7 +161,7 @@ class ProductionController extends AbstractController
 
                 $componentOperation = new ComponentOperation;
                 $componentOperation->setComponent($component_obj);
-                $componentOperation->setProduction();
+                $componentOperation->setProduction($component['value']);
                 $componentOperation->setProductionId($production);
                 $newState = $component['state'] - $component['value'];
                 $componentOperation->setState($newState);
@@ -180,7 +180,8 @@ class ProductionController extends AbstractController
                     ->orderBy('po.id', 'DESC')
                     ->getQuery();
                 $state = $builider->getQuery()->setMaxResults(1)->getResult(Query::HYDRATE_ARRAY);
-                $newState = ((float) $state + (float) $value)*1000;
+                $state = $state[0]['state'];
+                $newState = ($state + $value)*1000;
                 $productOperation->setState($newState);
                 $em->persist($productOperation);
                 $em->flush();
