@@ -68,6 +68,11 @@ class ComponentOperation
      */
     private $shipment_id;
 
+    /**
+     * @ORM\ManyToOne(targetEntity=ProductionDetail::class, inversedBy="componentOperations")
+     */
+    private $productionDetail;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -189,6 +194,18 @@ class ComponentOperation
     public function setShipmentId(?Shipment $shipment_id): self
     {
         $this->shipment_id = $shipment_id;
+
+        return $this;
+    }
+
+    public function getProductionDetail(): ?ProductionDetail
+    {
+        return $this->productionDetail;
+    }
+
+    public function setProductionDetail(?ProductionDetail $productionDetail): self
+    {
+        $this->productionDetail = $productionDetail;
 
         return $this;
     }

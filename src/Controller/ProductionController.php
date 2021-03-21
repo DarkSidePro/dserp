@@ -17,6 +17,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Query;
 use Doctrine\ORM\Query\Expr\Join;
 use Doctrine\ORM\QueryBuilder;
+use Omines\DataTablesBundle\Adapter\Doctrine\ORM\SearchCriteriaProvider;
 use Omines\DataTablesBundle\Adapter\Doctrine\ORMAdapter;
 use Omines\DataTablesBundle\Column\BoolColumn;
 use Omines\DataTablesBundle\Column\DateTimeColumn;
@@ -93,11 +94,11 @@ class ProductionController extends AbstractController
         $table = $dataTableFactory->create()
             ->add('id', NumberColumn::class, ['label' => '#', 'className' => 'bold', 'searchable' => true])
             ->add('component_name', TextColumn::class, ['label' => 'Component name', 'className' => 'bold', 'searchable' => true, 'field' => 'c.component_name'])
-            ->add('val', NumberColumn::class, ['label' => 'Amont', 'className' => 'bold', 'searchable' => true, 'render' => function($value, $context) { 
-                if ($context['test'] > $context['state']) {
-                    return "<span style='color:red'>".$context['test']."</span>";
+            ->add('val', NumberColumn::class, ['label' => 'Amount', 'className' => 'bold', 'searchable' => true, 'render' => function($value, $context) { 
+                if ($context['value'] > $context['state']) {
+                    return "<span style='color:red'>".$context['value']."</span>";
                 } else {
-                    return $context['test'];
+                    return $context['value'];
                 }
             }])
             ->add('state', NumberColumn::class, ['label' => 'State', 'className' => 'bold', 'searchable' => true, 'field' => 'co.state'])
@@ -105,17 +106,20 @@ class ProductionController extends AbstractController
                 'entity' => RecipeDetail::class,
                 'hydrate' => Query::HYDRATE_ARRAY,
                 'query' => function (QueryBuilder $builider) use ($production, $value) {
-                    $builider
-                        ->select('rd.id')
-                        ->addSelect('c.component_name')
-                        ->addSelect('co.state')
-                        ->addSelect('rd.amount *'.$value.' as test')
-                        ->from(RecipeDetail::class, 'rd')
-                        ->leftJoin(Component::class, 'c', Join::WITH, 'c.id = rd.component')
-                        ->leftJoin(ComponentOperation::class, 'co', Join::WITH, 'co.component = c.id AND NOT EXISTS (SELECT 1 FROM App\Entity\ComponentOperation p1 WHERE p1.component = c.id AND p1.id > co.id)')
-                        ->groupBy('c.id');
-                        
-                }
+                    $builider->select('c.id')
+                    ->addSelect('co.state')
+                    ->addSelect('c.component_name')
+                    ->addSelect('rd.amount *'.$value.' as value')
+                    ->from(RecipeDetail::class, 'rd')
+                    ->leftJoin(Component::class, 'c', Join::WITH, 'c.id = rd.component')
+                    ->leftJoin(ComponentOperation::class, 'co', Join::WITH, 'co.component = c.id AND NOT EXISTS (SELECT 1 FROM App\Entity\ComponentOperation p1 WHERE p1.component = c.id AND p1.id > co.id)');
+                },
+                'criteria' => [
+                    function (QueryBuilder $builder) use ($production) {
+                        $builder->andWhere($builder->expr()->eq('rd.recipe', ':recipe'))->setParameter('recipe', $production->getRecipe()->getId());
+                    },
+                    new SearchCriteriaProvider(),
+                ]
             ]);
         $table->handleRequest($request); 
         
@@ -138,17 +142,17 @@ class ProductionController extends AbstractController
 
         if ($saveProductionForm->isSubmitted() && $saveProductionForm->isValid()) {
             $builider = new QueryBuilder($em);
-            $builider->select('c.id')
-                ->addSelect('co.state')
-                ->addSelect('rd.amount *'.$value.' as value')
-                ->from(RecipeDetail::class, 'rd')
-                ->leftJoin(Component::class, 'c', Join::WITH, 'c.id = rd.component')
-                ->leftJoin(ComponentOperation::class, 'co', Join::WITH, 'co.component = c.id AND NOT EXISTS (SELECT 1 FROM App\Entity\ComponentOperation p1 WHERE p1.component = c.id AND p1.id > co.id)')
-                ->groupBy('c.id');
+            $builider->select('co.state')
+                    ->addSelect('c.id')
+                    ->addSelect('rd.amount *'.$value.' as value')
+                    ->from(RecipeDetail::class, 'rd')
+                    ->leftJoin(Component::class, 'c', Join::WITH, 'c.id = rd.component')
+                    ->leftJoin(ComponentOperation::class, 'co', Join::WITH, 'co.component = c.id AND NOT EXISTS (SELECT 1 FROM App\Entity\ComponentOperation p1 WHERE p1.component = c.id AND p1.id > co.id)')
+                    ->where('rd.recipe = '.$production->getRecipe()->getId());
             $components = $builider->getQuery()->getResult(Query::HYDRATE_ARRAY);
 
             foreach ($components as $component) {
-                var_dump($component);
+                //var_dump($components);
                 $productionDetail = new ProductionDetail;
                 $productionDetail->setProduction($production);
                 $component_obj = $this->getDoctrine()->getRepository(Component::class)->findOneBy(['id' => $component['id']]);
@@ -159,34 +163,45 @@ class ProductionController extends AbstractController
 
                 $componentOperation = new ComponentOperation;
                 $componentOperation->setComponent($component_obj);
-                $componentOperation->setProduction((float) -$component['value']);
+                $componentOperation->setProduction($component['value']*-1);
                 $componentOperation->setProductionId($production);
                 $componentOperation->setDatestamp(new \DateTime);
-                $newState = (float) $component['state'] - (float) $component['value'];
+                $componentOperation->setProductionDetail($productionDetail);
+                $newState = $component['state'] - $component['value'];
                 $componentOperation->setState($newState);
+                $em = $this->getDoctrine()->getManager();
                 $em->persist($componentOperation);
                 $em->flush();
 
-                $productOperation = new ProductOperation;
-                $productOperation->setProduct($productionDetail->getProduction()->getProduct());
-                $productOperation->setProduction($value);
-                $productOperation->setProductionId($productionDetail->getProduction());
-                $productOperation->setDatestamp(new \DateTime);
-                $builider = new QueryBuilder($em);
-                $builider
-                    ->select('po.state')
-                    ->from(ProductOperation::class, 'po')
-                    ->where('po.product ='.$productionDetail->getProduction()->getProduct()->getId())
-                    ->orderBy('po.id', 'DESC')
-                    ->getQuery();
-                $state = $builider->getQuery()->setMaxResults(1)->getResult(Query::HYDRATE_ARRAY);
-                $newState = ((float) $state + (float) $value)*1000;
-                $productOperation->setState($newState);
-                $em->persist($productOperation);
-                $em->flush();
             }
 
-            return $this->redirectToRoute('production_operations', ['id' => $productionDetail->getProduction()->getProduct()->getId()]);
+            $productOperation = new ProductOperation;
+            $productOperation->setProduct($productionDetail->getProduction()->getProduct());
+            $productOperation->setProduction($value*1000);
+            $productOperation->setProductionId($productionDetail->getProduction());
+            $builider = new QueryBuilder($em);
+            $builider
+                ->select('po.state')
+                ->from(ProductOperation::class, 'po')
+                ->where('po.product ='.$productionDetail->getProduction()->getProduct()->getId())
+                ->orderBy('po.id', 'DESC')
+                ->getQuery();
+            $state = $builider->getQuery()->setMaxResults(1)->getResult(Query::HYDRATE_ARRAY);
+
+            if (array_key_exists(0, $state)) {
+                $state = $state[0]['state'];
+            } else {
+                $state = 0;
+            }
+
+            $newState = $state + $value * 1000;
+            $productOperation->setState($newState);
+            $productOperation->setDatestamp(new \DateTime());
+            $em = $this->getDoctrine()->getManager();
+            $em->persist($productOperation);
+            $em->flush();
+
+            return $this->redirectToRoute('production_operations', ['id' => $production->getId()]);
         }
 
         return $this->render('production/calculator/index.html.twig', [
@@ -241,15 +256,50 @@ class ProductionController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $productionDetail->setProduction($production);
+            
             $em->persist($productionDetail);
+            $em->flush();
+
+            $production->setModification(true);
+            $em = $this->getDoctrine()->getManager();
+            $em->persist($production);
+            $em->flush();
+
+            $component = $form->get('component')->getData();
+            $value = $form->get('value')->getData();
+            $componentOperation = new ComponentOperation;
+            $componentOperation->setComponent($component);
+            $componentOperation->setProduction($value*-1);
+            $componentOperation->setProductionId($production);
+            $componentOperation->setDatestamp(new \DateTime);
+            $componentOperation->setProductionDetail($productionDetail);
+            
+            $builder = new QueryBuilder($em);
+            $builder->select('co.state')
+                ->from(Component::class, 'c')
+                ->leftJoin(ComponentOperation::class, 'co', Join::WITH, 'co.component = c.id AND NOT EXISTS (SELECT 1 FROM App\Entity\ComponentOperation p1 WHERE p1.component = c.id AND p1.id > co.id)')
+                ->where('c.id ='.$component->getId());
+            $lastState = $builder->getQuery()->getResult(Query::HYDRATE_ARRAY);    
+            $newState = $lastState[0]['state'] - $value;
+            $componentOperation->setState($newState);
+            $em = $this->getDoctrine()->getManager();
+            $em->persist($componentOperation);
             $em->flush();
             
             return $this->redirectToRoute('production_operations', ['id' => $production->getId()]);
         }
 
-        return $this->render('production/index.html.twig', [
+        $save = $this->createForm(SaveProductionType::class, null);
+        $save->handleRequest($request);
+
+        if ($save->isSubmitted() && $save->isValid()) {
+            return $this->redirectToRoute('production_detail_view', ['id' => $production->getId()]);
+        }
+
+        return $this->render('production/details/index.html.twig', [
             'controller_name' => 'ProductionController',
             'form' => $form->createView(),
+            'save' => $save->createView(),
             'datatable' => $table,
         ]);
     }
@@ -298,10 +348,29 @@ class ProductionController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $oldValue = $productionDetail->getValue();
             $em->persist($productionDetail);
             $em->flush();
 
-            return $this->redirectToRoute('production_operations', ['id' => $productionDetail->getProduction()]);
+            $builder = new QueryBuilder($em);
+            $builder->select('co')->from(ComponentOperation::class, 'co')->where('co.productionDetail ='.$productionDetail->getId());
+            $result = $builder->getQuery()->getResult(Query::HYDRATE_ARRAY);
+
+            $value = $form->get('value')->getData();
+
+
+            $componentOperation = $this->getDoctrine()->getRepository(ComponentOperation::class)->findOneBy(['id' => $result[0]['id']]);
+            $componentOperation->setProduction($value*-1);
+
+            $var = $value - $oldValue;
+            $lastState = $componentOperation->getState();
+
+            $componentOperation->setState($lastState - $var);
+            $em = $this->getDoctrine()->getManager();
+            $em->persist($componentOperation);
+            $em->flush();
+
+            return $this->redirectToRoute('production_operations', ['id' => $productionDetail->getProduction()->getId()]);
         }
 
         return $this->render('production/detail/update.html.twig', [
@@ -320,5 +389,46 @@ class ProductionController extends AbstractController
         $em->flush();
 
         return $this->redirectToRoute('production_operations', ['id' => $productionDetail->getProduction()]);
+    }
+
+    /**
+     * @Route("/panel/production/detail/view/{id}", name="production_detail_view")
+     */
+    public function productionDetailView(Production $production, DataTableFactory $dataTableFactory, Request $request): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_USER');
+
+        $table = $dataTableFactory->create([])
+            ->add('id', NumberColumn::class, ['label' => '#', 'className' => 'bold', 'searchable' => true])
+            ->add('component_name', TextColumn::class, ['label' => 'Component name', 'className' => 'bold', 'searchable' => true, 'field' => 'c.component_name'])
+            ->add('value', NumberColumn::class, ['label' => 'Value', 'className' => 'bold', 'searchable' => true])
+            ->createAdapter(ORMAdapter::class, [
+                'entity' => ProductionDetail::class,
+                'hydrate' => Query::HYDRATE_ARRAY,
+                'query' => function(QueryBuilder $builider) {
+                    $builider
+                        ->select('pd.id')
+                        ->addSelect('pd.value')
+                        ->addSelect('c.component_name')
+                        ->from(ProductionDetail::class, 'pd')
+                        ->leftJoin(Component::class, 'c', Join::WITH, 'c.id = pd.component');
+                },
+                'criteria' => [
+                    function (QueryBuilder $builider) use ($production) {
+                        $builider->andWhere($builider->expr()->eq('pd.production', ':production'))->setParameter('production', $production->getId());
+                    },
+
+                ]
+            ]);
+        $table->handleRequest($request); 
+        
+        if ($table->isCallback()) {
+            return $table->getResponse();
+        } 
+
+        return $this->render('production/details/view/index.html.twig', [
+            'controller_name' => 'ProductionController',
+            'datatable' => $table,
+        ]);
     }
 }

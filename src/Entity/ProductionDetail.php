@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\ProductionDetailRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -33,6 +35,16 @@ class ProductionDetail
      * @ORM\Column(type="decimal", precision=10, scale=2)
      */
     private $value;
+
+    /**
+     * @ORM\OneToMany(targetEntity=ComponentOperation::class, mappedBy="productionDetail")
+     */
+    private $componentOperations;
+
+    public function __construct()
+    {
+        $this->componentOperations = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -71,6 +83,36 @@ class ProductionDetail
     public function setValue(string $value): self
     {
         $this->value = $value;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|ComponentOperation[]
+     */
+    public function getComponentOperations(): Collection
+    {
+        return $this->componentOperations;
+    }
+
+    public function addComponentOperation(ComponentOperation $componentOperation): self
+    {
+        if (!$this->componentOperations->contains($componentOperation)) {
+            $this->componentOperations[] = $componentOperation;
+            $componentOperation->setProductionDetail($this);
+        }
+
+        return $this;
+    }
+
+    public function removeComponentOperation(ComponentOperation $componentOperation): self
+    {
+        if ($this->componentOperations->removeElement($componentOperation)) {
+            // set the owning side to null (unless already changed)
+            if ($componentOperation->getProductionDetail() === $this) {
+                $componentOperation->setProductionDetail(null);
+            }
+        }
 
         return $this;
     }

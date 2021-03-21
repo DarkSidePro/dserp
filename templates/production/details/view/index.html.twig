@@ -10,23 +10,12 @@
 {% block content %}
     <div class='col-xl-8 col-lg-8 col-md-8 col-sm-12 col-8'>
         <div class='card'>
-            <h5 class='card-header'>Production list</h5>
+            <h5 class='card-header'>Production details list</h5>
             <div class='card-body'>
                 <div id="presidents">Loading...</div>           
             </div>
         </div>
     </div>
-    {% if is_granted('ROLE_ADMIN') %}
-        <div class='col-xl-4 col-lg-4 col-md-4 col-sm-12 col-4'>
-            <div class='card'>
-                <h5 class='card-header'>New production</h5>
-                <div class='card-body'>
-                    {{ form_start(form) }}
-                    {{ form_end(form) }}
-                </div>
-            </div>
-        </div>
-    {% endif %}
 {% endblock %}
 {% block javascripts %}
     {{ parent() }}
