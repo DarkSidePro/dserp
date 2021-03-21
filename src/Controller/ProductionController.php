@@ -143,6 +143,7 @@ class ProductionController extends AbstractController
         if ($saveProductionForm->isSubmitted() && $saveProductionForm->isValid()) {
             $builider = new QueryBuilder($em);
             $builider->select('co.state')
+                    ->addSelect('c.id')
                     ->addSelect('rd.amount *'.$value.' as value')
                     ->from(RecipeDetail::class, 'rd')
                     ->leftJoin(Component::class, 'c', Join::WITH, 'c.id = rd.component')
@@ -151,6 +152,7 @@ class ProductionController extends AbstractController
             $components = $builider->getQuery()->getResult(Query::HYDRATE_ARRAY);
 
             foreach ($components as $component) {
+                //var_dump($components);
                 $productionDetail = new ProductionDetail;
                 $productionDetail->setProduction($production);
                 $component_obj = $this->getDoctrine()->getRepository(Component::class)->findOneBy(['id' => $component['id']]);
@@ -161,8 +163,9 @@ class ProductionController extends AbstractController
 
                 $componentOperation = new ComponentOperation;
                 $componentOperation->setComponent($component_obj);
-                $componentOperation->setProduction($component['value']);
+                $componentOperation->setProduction($component['value']*-1);
                 $componentOperation->setProductionId($production);
+                $componentOperation->setDatestamp(new \DateTime);
                 $newState = $component['state'] - $component['value'];
                 $componentOperation->setState($newState);
                 $em->persist($componentOperation);
@@ -180,13 +183,21 @@ class ProductionController extends AbstractController
                     ->orderBy('po.id', 'DESC')
                     ->getQuery();
                 $state = $builider->getQuery()->setMaxResults(1)->getResult(Query::HYDRATE_ARRAY);
-                $state = $state[0]['state'];
-                $newState = ($state + $value)*1000;
+
+                if (array_key_exists(0, $state)) {
+                    $state = $state[0]['state'];
+                } else {
+                    $state = 0;
+                }
+                $value = $state + $value;
+                $newState = $value*1000;
+                var_dump($newState);
                 $productOperation->setState($newState);
+                $productOperation->setDatestamp(new \DateTime());
                 $em->persist($productOperation);
                 $em->flush();
 
-                return $this->redirectToRoute('production');
+                //return $this->redirectToRoute('production_operations', ['id' => $production->getId()]);
             }
         }
 
