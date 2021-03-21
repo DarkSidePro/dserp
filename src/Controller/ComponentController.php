@@ -157,7 +157,7 @@ class ComponentController extends AbstractController
             $componentOperation->setDatestamp(new \DateTime);
             $em->persist($componentOperation);
             $em->flush();
-            
+            return $this->redirectToRoute('component');
             return $this->redirectToRoute('component_view', ['id' => $component->getId()]);
         }
 
