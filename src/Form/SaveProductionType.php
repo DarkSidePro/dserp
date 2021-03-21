@@ -12,7 +12,7 @@ class SaveProductionType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
-            ->add('save', SubmitType::class, [
+            ->add('generate', SubmitType::class, [
                 'attr' => ['class' => 'btn btn-success']
             ])
         ;
