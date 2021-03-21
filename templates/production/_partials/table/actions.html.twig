@@ -2,7 +2,7 @@
     {#% if is_granted('ROLE_ADMIN') %}
     <a href="{{ path('production_update', {'id': row.id }) }}" class="btn btn-sm btn-outline-light">Edit</a>
     {% endif % #}
-    <a href="{{ path('production_operations', {'id': row.id }) }}" class="btn btn-sm btn-outline-light">View operations</a>
+    <a href="{{ path('production_detail_view', {'id': row.id }) }}" class="btn btn-sm btn-outline-light">View details</a>
     {#% if is_granted('ROLE_ADMIN') %}
         <a href="{{ path('production_remove', {'id': row.id }) }}" class="btn btn-sm btn-outline-light remove">
             <i class="far fa-trash-alt"></i>
