@@ -94,10 +94,10 @@ class ProductionController extends AbstractController
             ->add('id', NumberColumn::class, ['label' => '#', 'className' => 'bold', 'searchable' => true])
             ->add('component_name', TextColumn::class, ['label' => 'Component name', 'className' => 'bold', 'searchable' => true, 'field' => 'c.component_name'])
             ->add('val', NumberColumn::class, ['label' => 'Amont', 'className' => 'bold', 'searchable' => true, 'render' => function($value, $context) { 
-                if ($context['value'] > $context['state']) {
-                    return "<span style='color:red'>".$context['value']."</span>";
+                if ($context['test'] > $context['state']) {
+                    return "<span style='color:red'>".$context['test']."</span>";
                 } else {
-                    return $context['value'];
+                    return $context['test'];
                 }
             }])
             ->add('state', NumberColumn::class, ['label' => 'State', 'className' => 'bold', 'searchable' => true, 'field' => 'co.state'])
@@ -109,7 +109,7 @@ class ProductionController extends AbstractController
                         ->select('rd.id')
                         ->addSelect('c.component_name')
                         ->addSelect('co.state')
-                        ->addSelect('rd.amount *'.$value.' as value')
+                        ->addSelect('rd.amount *'.$value.' as test')
                         ->from(RecipeDetail::class, 'rd')
                         ->leftJoin(Component::class, 'c', Join::WITH, 'c.id = rd.component')
                         ->leftJoin(ComponentOperation::class, 'co', Join::WITH, 'co.component = c.id AND NOT EXISTS (SELECT 1 FROM App\Entity\ComponentOperation p1 WHERE p1.component = c.id AND p1.id > co.id)')
@@ -134,7 +134,7 @@ class ProductionController extends AbstractController
 
         
         $saveProductionForm = $this->createForm(SaveProductionType::class, null);
-        $updateAmountForm->handleRequest($request);
+        $saveProductionForm->handleRequest($request);
 
         if ($saveProductionForm->isSubmitted() && $saveProductionForm->isValid()) {
             $builider = new QueryBuilder($em);
@@ -148,6 +148,7 @@ class ProductionController extends AbstractController
             $components = $builider->getQuery()->getResult(Query::HYDRATE_ARRAY);
 
             foreach ($components as $component) {
+                var_dump($component);
                 $productionDetail = new ProductionDetail;
                 $productionDetail->setProduction($production);
                 $component_obj = $this->getDoctrine()->getRepository(Component::class)->findOneBy(['id' => $component['id']]);
@@ -160,6 +161,7 @@ class ProductionController extends AbstractController
                 $componentOperation->setComponent($component_obj);
                 $componentOperation->setProduction((float) -$component['value']);
                 $componentOperation->setProductionId($production);
+                $componentOperation->setDatestamp(new \DateTime);
                 $newState = (float) $component['state'] - (float) $component['value'];
                 $componentOperation->setState($newState);
                 $em->persist($componentOperation);
@@ -169,6 +171,7 @@ class ProductionController extends AbstractController
                 $productOperation->setProduct($productionDetail->getProduction()->getProduct());
                 $productOperation->setProduction($value);
                 $productOperation->setProductionId($productionDetail->getProduction());
+                $productOperation->setDatestamp(new \DateTime);
                 $builider = new QueryBuilder($em);
                 $builider
                     ->select('po.state')
@@ -181,9 +184,9 @@ class ProductionController extends AbstractController
                 $productOperation->setState($newState);
                 $em->persist($productOperation);
                 $em->flush();
-
-                return $this->redirectToRoute('production');
             }
+
+            return $this->redirectToRoute('production_operations', ['id' => $productionDetail->getProduction()->getProduct()->getId()]);
         }
 
         return $this->render('production/calculator/index.html.twig', [
