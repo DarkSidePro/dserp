@@ -158,7 +158,6 @@ class ComponentController extends AbstractController
             $em->persist($componentOperation);
             $em->flush();
             return $this->redirectToRoute('component');
-            return $this->redirectToRoute('component_view', ['id' => $component->getId()]);
         }
 
         return $this->render('component/operations/index.html.twig', [
