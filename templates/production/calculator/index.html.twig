@@ -5,18 +5,24 @@
     <link rel='stylesheet' href="https://cdn.datatables.net/select/1.3.1/css/select.dataTables.min.css">
     <link rel='stylesheet' href="https://cdn.datatables.net/buttons/1.6.5/css/buttons.dataTables.min.css">
     <link rel='stylesheet' href="https://cdn.datatables.net/select/1.3.1/css/select.dataTables.min.css">
+    <style>
+        .save button#save_production_generate {
+            display: none;
+        }
+    </style>
 {% endblock %}
 {% block title %}- Products{% endblock %}
 {% block content %}
     <div class='col-xl-8 col-lg-8 col-md-8 col-sm-12 col-8'>
         <div class='card'>
-            <h5 class='card-header'>Production, product: {{product_name}}, recipe: {{recipe_name}} component list</h5>
+            <h5 class='card-header'>Production, product: {{product_name}}, recipe: {{recipe_name}} component list, value: {{value}}</h5>
             <div class='card-body'>
                 <div id="presidents">Loading...</div>           
             </div>
         </div>
     </div>
     <div class='col-xl-4 col-lg-4 col-md-4 col-sm-12 col-4'>
+        {# 
         <div class='card'>
             <h5 class='card-header'>Update amount of components</h5>
             <div class='card-body'>
@@ -24,10 +30,19 @@
                 {{ form_end(updateAmountForm) }}
             </div>
         </div>
+        #}
         <div class='card'>
             <h5 class='card-header'>Generate production</h5>
             <div class='card-body'>
+                {{ form_start(generateProductionForm) }}
+                {{ form_end(generateProductionForm) }}
+            </div>
+        </div>
+        <div class='card'>
+            <h5 class='card-header'>Save production</h5>
+            <div class='card-body save'>
                 {{ form_start(saveProductionForm) }}
+                <button type="submit" name="save_production[generate]" class="btn btn-success btn">Save</button>
                 {{ form_end(saveProductionForm) }}
             </div>
         </div>

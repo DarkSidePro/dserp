@@ -140,7 +140,10 @@ class ProductionController extends AbstractController
         $saveProductionForm = $this->createForm(SaveProductionType::class, null);
         $saveProductionForm->handleRequest($request);
 
-        if ($saveProductionForm->isSubmitted() && $saveProductionForm->isValid()) {
+        $generateProductionForm = $this->createForm(SaveProductionType::class, null);
+        $generateProductionForm->handleRequest($request);
+
+        if ($saveProductionForm->isSubmitted() && $saveProductionForm->isValid() || $generateProductionForm->isSubmitted() && $generateProductionForm->isValid()) {
             $builider = new QueryBuilder($em);
             $builider->select('co.state')
                     ->addSelect('c.id')
@@ -201,7 +204,13 @@ class ProductionController extends AbstractController
             $em->persist($productOperation);
             $em->flush();
 
-            return $this->redirectToRoute('production_operations', ['id' => $production->getId()]);
+            if ($generateProductionForm->isSubmitted()) {
+                return $this->redirectToRoute('production_operations', ['id' => $production->getId()]);
+
+            } elseif ($saveProductionForm->isSubmitted()) {
+                return $this->redirectToRoute('production_detail_view', ['id' => $production->getId()]);
+            }
+
         }
 
         return $this->render('production/calculator/index.html.twig', [
@@ -210,7 +219,9 @@ class ProductionController extends AbstractController
             'product_name' => $production->getProduct()->getProductName(),
             'datatable' => $table,
             'updateAmountForm' => $updateAmountForm->createView(),
-            'saveProductionForm' => $saveProductionForm->createView()
+            'saveProductionForm' => $saveProductionForm->createView(),
+            'generateProductionForm' => $generateProductionForm->createView(),
+            'value' => $value
         ]);
     }
 
