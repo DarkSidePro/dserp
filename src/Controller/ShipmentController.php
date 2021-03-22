@@ -119,6 +119,7 @@ class ShipmentController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $shipmentClient->setShipment($shipment);
             $em->persist($shipmentClient);
             $em->flush();
 
