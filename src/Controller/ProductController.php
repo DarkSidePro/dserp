@@ -94,19 +94,18 @@ class ProductController extends AbstractController
         
         $table = $dataTableFactory->create([])
             ->add('id', NumberColumn::class, ['label' => '#', 'className' => 'bold', 'searchable' => true])
-            ->add('enter', NumberColumn::class, ['label' => 'Enter', 'className' => 'bold', 'searchable' => true])
-            ->add('dispatch', NumberColumn::class, ['label' => 'Dispatch', 'className' => 'bold', 'searchable' => true])
+            ->add('datestamp', DateTimeColumn::class, ['label' => 'Created', 'className' => 'bold', 'searchable' => true, 'format' => 'Y-m-d H:i:s'])
             ->add('modification', NumberColumn::class, ['label' => 'Modification', 'className' => 'bold', 'searchable' => true])
+            ->add('production', NumberColumn::class, ['label' => 'Production', 'className' => 'bold', 'searchable' => true])
             ->add('shipment', NumberColumn::class, ['label' => 'Shipment', 'className' => 'bold', 'searchable' => true])
             ->add('state', NumberColumn::class, ['label' => 'State', 'className' => 'bold', 'searchable' => true])
-            ->add('datestamp', DateTimeColumn::class, ['label' => 'Created', 'className' => 'bold', 'searchable' => true, 'format' => 'Y-m-d H:i:s'])
             ->add('actions', TwigColumn::class, ['label' => 'Actions', 'className' => 'bold', 'searchable' => true, 'template' => 'product/operations/_partials/table/actions.html.twig'])
             ->createAdapter(ORMAdapter::class, [
                 'entity' => ProductOperation::class,
                 'hydrate' => Query::HYDRATE_ARRAY,
                 'query' => function (QueryBuilder $builder) use ($product) {
                     $builder->select('po.id');
-                    $builder->addSelect('po.enter');
+                    $builder->addSelect('po.shipment');
                     $builder->addSelect('po.modification');
                     $builder->addSelect('po.production');
                     $builder->addSelect('po.state');
