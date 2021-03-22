@@ -148,23 +148,14 @@ class ProductController extends AbstractController
             $oldState = $builider->getQuery()->setMaxResults(1)->getResult(Query::HYDRATE_ARRAY);
             $oldState = $oldState['0']['state'];
 
-            if ($mod < 0) {
-                $newState = (float) $oldState + (float)$mod;
+            $newState = $oldState + $mod;
 
-                if ($newState < 0) {
-                    return $this->redirectToRoute('product_operations', ['id' => $product->getId()]);
-                } else {
-                    $productOperation->setState($newState);
-                }
+            if ($newState < 0) {
+                return $this->redirectToRoute('product_operations', ['id' => $product->getId()]);
             } else {
-                $newState = (float) $oldState + (float) $mod;
-
-                if ($newState < 0) {
-                    return $this->redirectToRoute('product_operations', ['id' => $product->getId()]);
-                } else {
-                    $productOperation->setState($newState);
-                }
+                $productOperation->setState($newState);
             }
+            
             $productOperation->setProduct($product);
             $productOperation->setDatestamp(new \DateTime);
             $em->persist($productOperation);
