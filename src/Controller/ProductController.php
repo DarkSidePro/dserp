@@ -37,8 +37,8 @@ class ProductController extends AbstractController
         $table = $dataTableFactory->create([])
             ->add('id', NumberColumn::class, ['label' => '#', 'className' => 'bold', 'searchable' => true])
             ->add('product_name', TextColumn::class, ['label' => 'Product name', 'className' => 'bold', 'searchable' => true])
-            ->add('animal_name2', TextColumn::class, ['label' => 'Animal name', 'className' => 'bold', 'searchable' => true, 'render' => function($value, $context) { return $context['animal_name'];}])
-            ->add('operations', NumberColumn::class, ['label' => 'No. operations', 'className' => 'bold', 'searchable' => true])
+            ->add('animal_name2', TextColumn::class, ['label' => 'Animal name', 'className' => 'bold', 'searchable' => true, 'field' => 'a.animal_name'])
+            ->add('state', TextColumn::class, ['label' => 'State', 'className' => 'bold', 'searchable' => true, 'field' => 'po.state'])
             ->add('actions', TwigColumn::class, ['label' => 'Actions', 'className' => 'bold', 'searchable' => true, 'template' => 'product/_partials/table/actions.html.twig'])
             ->createAdapter(ORMAdapter::class, [
                 'entity' => Product::class,
@@ -48,10 +48,10 @@ class ProductController extends AbstractController
                         ->select('p.id')
                         ->addSelect('p.product_name')
                         ->addSelect('a.animal_name')
-                        ->addSelect('COUNT(po.id) as operations')
+                        ->addSelect('po.state')
                         ->from(Product::class, 'p')
                         ->leftJoin(Animal::class, 'a', Join::WITH, 'p.animal = a.id')
-                        ->leftJoin(ProductOperation::class, 'po', Join::WITH, 'p.id = po.product')
+                        ->leftJoin(ProductOperation::class, 'po', Join::WITH, 'po.product = p.id AND NOT EXISTS (SELECT 1 FROM App\Entity\ProductOperation p1 WHERE p1.product = p.id AND p1.id > po.id)')
                         ->groupBy('p.id');
                 }
             ]);
