@@ -81,13 +81,13 @@ class ComponentController extends AbstractController
     {
         $table = $dataTableFactory->create([])
             ->add('id', NumberColumn::class, ['label' => '#', 'searchable' => true])
+            ->add('datestamp', DateTimeColumn::class, ['label' => 'Created', 'searchable' => true, 'format' => 'Y-m-d'])
             ->add('enter', NumberColumn::class, ['label' => 'Enter', 'searchable' => true])
             //->add('dispatch', NumberColumn::class, ['label' => 'Dispatch', 'searchable' => true])
             ->add('modification', NumberColumn::class, ['label' => 'Modification', 'searchable' => true])
             ->add('production', NumberColumn::class, ['label' => 'Production', 'searchable' => true])
             //->add('shipment', NumberColumn::class, ['label' => 'Shipment', 'searchable' => true])
             ->add('state', NumberColumn::class, ['label' => 'State', 'searchable' => true])
-            ->add('datestamp', DateTimeColumn::class, ['label' => 'Created', 'searchable' => true, 'format' => 'Y-m-d'])
             ->add('actions', TwigColumn::class, ['template' => 'component/operations/_partials/table/actions.html.twig', 'label' => '#', 'searchable' => false])
             ->createAdapter(ORMAdapter::class, [
                 'entity' => ComponentOperation::class,

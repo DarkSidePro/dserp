@@ -7,7 +7,7 @@
     </div>#}
     <div class='btn-group'>
         {% if row.production_id %}
-            <a href="{{ path('production_operations', {'id': row.production_id }) }}" class="btn btn-sm btn-outline-light">View production</a>
+            <a href="{{ path('production_detail_view', {'id': row.production_id }) }}" class="btn btn-sm btn-outline-light">View production</a>
         {% endif %}
         {% if row.shipment_id %}
             <a href="{{ path('shipment_details', {'id': row.shipment_id }) }}" class="btn btn-sm btn-outline-light">View shipment</a>
