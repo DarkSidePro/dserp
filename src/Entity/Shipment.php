@@ -49,6 +49,7 @@ class Shipment
         $this->shipmentClients = new ArrayCollection();
         $this->componentOperations = new ArrayCollection();
         $this->productOperations = new ArrayCollection();
+        $this->datestamp = new \DateTime();
     }
 
     public function getId(): ?int
