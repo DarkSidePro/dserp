@@ -9,7 +9,10 @@
 {% block title %}- Shipment client detail list{% endblock %}
 {% block breadcrumb_link %}
     <li class="breadcrumb-item">
-        <a href="{{ path('shipment') }}" class="breadcrumb-link">Shipment</a>
+        <a href="{{ path('shipment') }}" class="breadcrumb-link">Shipments</a>
+    </li>
+    <li class="breadcrumb-item">
+        <a href="{{ path('shipment_details', {'id': id }) }}" class="breadcrumb-link">Clients</a>
     </li>
 {% endblock %}
 {% block content %}

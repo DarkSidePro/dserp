@@ -216,7 +216,8 @@ class ShipmentController extends AbstractController
             'controller_name' => 'ShipmentController',
             'datatable' => $table,
             'form' => $form->createView(),
-            'client_name' => $shipmentClient->getClient()->getClientName()
+            'client_name' => $shipmentClient->getClient()->getClientName(),
+            'id' => $shipmentClient->getShipment()->getId()
         ]);
     }
 
