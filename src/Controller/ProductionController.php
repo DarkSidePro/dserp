@@ -10,6 +10,7 @@ use App\Entity\ProductionDetail;
 use App\Entity\ProductOperation;
 use App\Entity\Recipe;
 use App\Entity\RecipeDetail;
+use App\Form\GenerateProductionType;
 use App\Form\ProductionAmountType;
 use App\Form\ProductionDetailType;
 use App\Form\ProductionType;
@@ -158,7 +159,7 @@ class ProductionController extends AbstractController
         $saveProductionForm = $this->createForm(SaveProductionType::class, null);
         $saveProductionForm->handleRequest($request);
 
-        $generateProductionForm = $this->createForm(SaveProductionType::class, null);
+        $generateProductionForm = $this->createForm(GenerateProductionType::class, null);
         $generateProductionForm->handleRequest($request);
 
         if ($saveProductionForm->isSubmitted() && $saveProductionForm->isValid() || $generateProductionForm->isSubmitted() && $generateProductionForm->isValid()) {

@@ -7,12 +7,12 @@ use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
-class SaveProductionType extends AbstractType
+class GenerateProductionType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
-            ->add('Save', SubmitType::class, [
+            ->add('generate', SubmitType::class, [
                 'attr' => ['class' => 'btn btn-success']
             ])
         ;
