@@ -44,6 +44,11 @@ class Shipment
      */
     private $reference;
 
+    /**
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    private $modification;
+
     public function __construct()
     {
         $this->shipmentClients = new ArrayCollection();
@@ -167,6 +172,18 @@ class Shipment
     public function setReference(?string $reference): self
     {
         $this->reference = $reference;
+
+        return $this;
+    }
+
+    public function getModification(): ?bool
+    {
+        return $this->modification;
+    }
+
+    public function setModification(?bool $modification): self
+    {
+        $this->modification = $modification;
 
         return $this;
     }

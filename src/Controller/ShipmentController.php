@@ -7,6 +7,7 @@ use App\Entity\Product;
 use App\Entity\Shipment;
 use App\Entity\ShipmentClient;
 use App\Entity\ShipmentClientDetail;
+use App\Form\FinishShipmentType;
 use App\Form\ShipmentClientDetailType;
 use App\Form\ShipmentClientType;
 use App\Form\ShipmentFinishDetailType;
@@ -129,6 +130,17 @@ class ShipmentController extends AbstractController
             $em->flush();
 
             return $this->redirectToRoute('shipment_details', ['id' => $shipment->getId()]);
+        }
+
+        $saveShipment = $this->createForm(FinishShipmentType::class, null);
+        $saveShipment->handleRequest($request);
+
+        if ($saveShipment->isSubmitted() && $saveShipment->isValid()) {
+            $shipment->setModification(true);
+            $em->persist($shipment);
+            $em->flush();
+
+            return $this->redirectToRoute('shipment');
         }
 
         return $this->render('shipment/details/index.html.twig', [
