@@ -8,6 +8,7 @@ use App\Entity\Product;
 use App\Entity\Production;
 use App\Entity\ProductionDetail;
 use App\Entity\ProductOperation;
+use App\Entity\Recipe;
 use App\Entity\RecipeDetail;
 use App\Form\ProductionAmountType;
 use App\Form\ProductionDetailType;
@@ -41,14 +42,30 @@ class ProductionController extends AbstractController
         $this->denyAccessUnlessGranted('ROLE_USER');
 
         $table = $dataTableFactory->create([])
-            ->add('id', TextColumn::class, ['label' => '#', 'className' => 'bold', 'searchable' => true])
+            ->add('id', NumberColumn::class, ['label' => '#', 'className' => 'bold', 'searchable' => true])
             ->add('modification', BoolColumn::class, ['label' => 'Modification', 'className' => 'bold', 'searchable' => true, 'trueValue' => 'Yes', 'falseValue' => 'No', 'nullValue' => ''])
             ->add('datestamp', DateTimeColumn::class, ['label' => 'Created', 'className' => 'bold', 'searchable' => true, 'format' => 'Y-m-d'])
             ->add('product_name', TextColumn::class, ['label' => 'Product name', 'className' => 'bold', 'searchable' => true, 'field' => 'recipe.recipe_name', 'orderField' => 'product.product_name'])
             ->add('recipe_name', TextColumn::class, ['label' => 'Recipe name', 'className' => 'bold', 'searchable' => true, 'field' => 'product.product_name', 'orderField' => 'recipe.recipe_name'])
+            ->add('production', NumberColumn::class, ['label' => 'Production', 'className' => 'bold', 'searchable' => true, 'field' => 'po.production'])
             ->add('actions', TwigColumn::class, ['label' => 'Actions', 'className' => 'bold', 'searchable' => true, 'template' => 'production/_partials/table/actions.html.twig'])
             ->createAdapter(ORMAdapter::class, [
                 'entity' => Production::class,
+                'hydrate' => Query::HYDRATE_ARRAY,
+                'query' => function (QueryBuilder $builder) {
+                    $builder
+                        ->select('prod.modification')
+                        ->addSelect('prod.id')
+                        ->addSelect('prod.datestamp')
+                        ->addSelect('p.product_name')
+                        ->addSelect('po.production')
+                        ->addSelect('r.recipe_name')
+                        ->from(Production::class, 'prod')
+                        ->leftJoin(Product::class, 'p', Join::WITH, 'prod.product = p.id')
+                        ->leftJoin(Recipe::class, 'r', Join::WITH, 'r.id = prod.recipe')
+                        ->leftJoin(ProductOperation::class, 'po', Join::WITH, 'po.production_id = prod.id AND NOT EXISTS (SELECT 1 FROM App\Entity\ProductOperation p1 WHERE p1.production_id = prod.id AND p1.id > po.id)');
+                        $builder->groupBy('prod.id');
+                }
             ]);
         $table->handleRequest($request); 
         
