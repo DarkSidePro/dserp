@@ -31,7 +31,7 @@ class WarehouseController extends AbstractController
             ->setName('product_table')
             ->add('id', NumberColumn::class, ['label' => '#', 'className' => 'bold', 'searchable' => true])
             ->add('product_name', TextColumn::class, ['label' => 'Product name', 'className' => 'bold', 'searchable' => true])
-            ->add('state', NumberColumn::class, ['label' => 'State', 'className' => 'bold', 'searchable' => true])
+            ->add('state', TextColumn::class, ['label' => 'State', 'className' => 'bold', 'searchable' => true, 'field' => 'po.state'])
             ->createAdapter(ORMAdapter::class, [
                 'entity' => Product::class,
                 'hydrate' => Query::HYDRATE_ARRAY,
@@ -43,7 +43,7 @@ class WarehouseController extends AbstractController
                         ->from(Product::class, 'p')
                         ->leftJoin(ProductOperation::class, 'po', Join::WITH, 'po.product = p.id AND NOT EXISTS (SELECT 1 FROM App\Entity\ProductOperation p1 WHERE p1.product = p.id AND p1.id > po.id)')
                         ->groupBy('p.id');
-                }
+                    }
             ]);
         $product_table->handleRequest($request);
         
@@ -55,7 +55,7 @@ class WarehouseController extends AbstractController
             ->setName('component_table')
             ->add('id', NumberColumn::class, ['label' => '#', 'className' => 'bold', 'searchable' => true])
             ->add('component_name', TextColumn::class, ['label' => 'Component name', 'className' => 'bold', 'searchable' => true])
-            ->add('state', NumberColumn::class, ['label' => 'State', 'className' => 'bold', 'searchable' => true])
+            ->add('state', NumberColumn::class, ['label' => 'State', 'className' => 'bold', 'searchable' => true, 'field' => 'co.state'])
             ->createAdapter(ORMAdapter::class, [
                 'entity' => Component::class,
                 'hydrate' => Query::HYDRATE_ARRAY,
