@@ -18,16 +18,16 @@ class RecipeDetailType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
+            ->add('component', EntityType::class, [
+                'class' => Component::class,
+                'choice_label' => 'component_name'
+            ])
             ->add('amount', NumberType::class, [
                 'constraints' => [
                     new NotBlank([
                         'message' => 'Please enter amount',
                     ]),
                 ]
-            ])
-            ->add('component', EntityType::class, [
-                'class' => Component::class,
-                'choice_label' => 'component_name'
             ])
             ->add('save', SubmitType::class, [
                 'attr' => ['class' => 'btn btn-success'] 
