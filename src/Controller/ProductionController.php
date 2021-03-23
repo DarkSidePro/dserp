@@ -63,7 +63,8 @@ class ProductionController extends AbstractController
                         ->from(Production::class, 'prod')
                         ->leftJoin(Product::class, 'p', Join::WITH, 'prod.product = p.id')
                         ->leftJoin(Recipe::class, 'r', Join::WITH, 'r.id = prod.recipe')
-                        ->leftJoin(ProductOperation::class, 'po', Join::WITH, 'po.production_id = prod.id AND NOT EXISTS (SELECT 1 FROM App\Entity\ProductOperation p1 WHERE p1.production_id = prod.id AND p1.id > po.id)');
+                        ->leftJoin(ProductOperation::class, 'po', Join::WITH, 'po.production_id = prod.id AND NOT EXISTS (SELECT 1 FROM App\Entity\ProductOperation p1 WHERE p1.production_id = prod.id AND p1.id > po.id)')
+                        ->orderBy('prod.datestamp', 'DESC');
                         $builder->groupBy('prod.id');
                 }
             ]);
