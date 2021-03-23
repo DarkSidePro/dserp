@@ -24,17 +24,6 @@
             </div>
         </div>
     </div>
-    {% if is_granted('ROLE_ADMIN') %}
-        <div class='col-xl-4 col-lg-4 col-md-4 col-sm-12 col-4'>
-            <div class='card'>
-                <h5 class='card-header'>New shipment client {{client_name}} detail</h5>
-                <div class='card-body'>
-                    {{ form_start(form) }}
-                    {{ form_end(form) }}
-                </div>
-            </div>
-        </div>
-    {% endif %}
 {% endblock %}
 {% block javascripts %}
     {{ parent() }}
