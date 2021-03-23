@@ -1,5 +1,10 @@
 {% extends "_partials/body.html.twig" %}
 {% block title %}- Components{% endblock %}
+{% block breadcrumb_link %}
+    <li class="breadcrumb-item">
+        <a href="{{ path('component') }}" class="breadcrumb-link">Component</a>
+    </li>
+{% endblock %}
 {% block content %}
     <div class='col-xl-12 col-lg-12 cold-md-12 col-sm-12 col-12'>
         <div class='card'>
