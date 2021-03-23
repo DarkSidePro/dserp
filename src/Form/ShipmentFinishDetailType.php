@@ -13,7 +13,7 @@ class ShipmentFinishDetailType extends AbstractType
     {
         $builder
             ->add('finishClient', SubmitType::class, [
-                'attr' => ['btn btn-success']
+                'attr' => ['class' => 'btn btn-success']
             ])
         ;
     }

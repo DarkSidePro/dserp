@@ -98,6 +98,7 @@ class ShipmentController extends AbstractController
                 'query' => function(QueryBuilder $builider) {
                     $builider
                         ->select('sc.id as id')
+                        ->addSelect('sc.modification')
                         ->addSelect('c.client_name')
                         ->addSelect('COUNT(scd.id) as details')
                         ->from(ShipmentClient::class, 'sc')

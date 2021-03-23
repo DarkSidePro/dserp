@@ -1,11 +1,7 @@
 <div class="btn-group ml-auto">
-    {% if is_granted('ROLE_ADMIN') %}
-        <a href="{{ path('shipment_detail_update', {'id': row.id }) }}" class="btn btn-sm btn-outline-light">Edit</a>
-    {% endif %}
-    <a href="{{ path('shipment_client_details', {'id': row.id }) }}" class="btn btn-sm btn-outline-light">View details</a>
-    {% if is_granted('ROLE_ADMIN') %}
-        <a href="{{ path('shipment_client_remove', {'id': row.id }) }}" class="btn btn-sm btn-outline-light remove">
-            <i class="far fa-trash-alt"></i>
-        </a>
+    {% if row.modification == true %}
+        <a href="{{ path('shipment_client_details_view', {'id': row.id }) }}" class="btn btn-sm btn-outline-light">View details</a>
+    {% else %}
+        <a href="{{ path('shipment_client_details', {'id': row.id }) }}" class="btn btn-sm btn-outline-light">View details</a>
     {% endif %}
 </div> 
