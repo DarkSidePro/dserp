@@ -7,6 +7,11 @@
     <link rel='stylesheet' href="https://cdn.datatables.net/select/1.3.1/css/select.dataTables.min.css">
 {% endblock %}
 {% block title %} - Product operation update{% endblock %}
+{% block breadcrumb_link %}
+    <li class="breadcrumb-item">
+        <a href="{{ path('product') }}" class="breadcrumb-link">Product</a>
+    </li>
+{% endblock %}
 {% block page_header_title %}
     Product {{ product_name }} update
 {% endblock %}

@@ -7,12 +7,15 @@
     <link rel='stylesheet' href="https://cdn.datatables.net/select/1.3.1/css/select.dataTables.min.css">
 {% endblock %}
 {% block title %}- Members{% endblock %}
-{% block page_header_title %}
-    Member list
+{% block breadcrumb_link %}
+    <li class="breadcrumb-item">
+        <a href="{{ path('admin_member') }}" class="breadcrumb-link">Member</a>
+    </li>
 {% endblock %}
 {% block content %}
     <div class='col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12'>
         <div class='card'>
+            <h5 class='card-header'>Member list</h5>
             <div class='card-body'>
                 <div id="presidents">Loading...</div>           
             </div>

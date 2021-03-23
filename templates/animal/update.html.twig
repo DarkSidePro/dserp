@@ -3,6 +3,11 @@
 {% block page_header_title %}
     Animal {{animal_name}} update
 {% endblock %}
+{% block breadcrumb_link %}
+    <li class="breadcrumb-item">
+        <a href="{{ path('animal') }}" class="breadcrumb-link">Animal</a>
+    </li>
+{% endblock %}
 {% block content %}
     <div class='col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12'>
         <div class='card'>
