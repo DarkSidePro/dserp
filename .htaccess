@@ -1,5 +1,4 @@
 RewriteEngine on
-RewriteCond %{HTTP_HOST} ^erp.soymax.pl$ [NC,OR]
-RewriteCond %{HTTP_HOST} ^www.erp.soymax.pl$
+RewriteCond %{HTTP_HOST} ^localhost$ [NC,OR]
 RewriteCond %{REQUEST_URI} !public/
 RewriteRule (.*) /public/$1 [L]

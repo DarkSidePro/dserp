@@ -189,7 +189,7 @@ class ShipmentController extends AbstractController
                 },
                 'criteria' => [
                     function (QueryBuilder $builder) use ($shipmentClient) {
-                        $builder->andWhere($builder->expr()->eq('c.shipmentClient', ':shipment'))->setParameter('shipment', $shipmentClient->getShipment()->getId());
+                        $builder->andWhere($builder->expr()->eq('c.shipmentClient', ':shipment'))->setParameter('shipment', $shipmentClient->getId());
                     },
                     new SearchCriteriaProvider(),
                 ]
