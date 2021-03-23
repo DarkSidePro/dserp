@@ -80,8 +80,8 @@ class RecipeController extends AbstractController
         $this->tmpId = $id;
 
         $table = $dataTableFactory->create([])
-            ->add('component', TextColumn::class, ['label' => 'Component name', 'className' => 'bold', 'searchable' => true, 'field' => 'c.component_name'])
             ->add('amount', TextColumn::class, ['label' => 'Amount', 'className' => 'bold', 'searchable' => true])
+            ->add('component', TextColumn::class, ['label' => 'Component name', 'className' => 'bold', 'searchable' => true, 'field' => 'c.component_name'])
             ->add('actions', TwigColumn::class, ['label' => 'Actions', 'className' => 'bold', 'searchable' => true, 'template' => 'recipe/details/_partials/table/actions.html.twig'])
             ->createAdapter(ORMAdapter::class, [
                 'entity' => RecipeDetail::class,
