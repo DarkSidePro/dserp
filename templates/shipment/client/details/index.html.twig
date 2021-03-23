@@ -12,7 +12,7 @@
         <a href="{{ path('shipment') }}" class="breadcrumb-link">Shipments</a>
     </li>
     <li class="breadcrumb-item">
-        <a href="{{ path('shipment_details_view', {'id': id }) }}" class="breadcrumb-link">Clients</a>
+        <a href="{{ path('shipment_details', {'id': id }) }}" class="breadcrumb-link">Clients</a>
     </li>
 {% endblock %}
 {% block content %}
@@ -31,6 +31,13 @@
                 <div class='card-body'>
                     {{ form_start(form) }}
                     {{ form_end(form) }}
+                </div>
+            </div>
+            <div class='card'>
+                <h5 class='card-header'>Finish client</h5>
+                <div class='card-body'>
+                    {{ form_start(save_client) }}
+                    {{ form_end(save_client) }}
                 </div>
             </div>
         </div>

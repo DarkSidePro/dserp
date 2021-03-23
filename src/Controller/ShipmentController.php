@@ -2,11 +2,15 @@
 
 namespace App\Controller;
 
+use App\Entity\Client;
+use App\Entity\Product;
 use App\Entity\Shipment;
 use App\Entity\ShipmentClient;
 use App\Entity\ShipmentClientDetail;
+use App\Form\FinishShipmentType;
 use App\Form\ShipmentClientDetailType;
 use App\Form\ShipmentClientType;
+use App\Form\ShipmentFinishDetailType;
 use App\Form\ShipmentGenerateType;
 use App\Form\ShipmentType;
 use Doctrine\ORM\EntityManagerInterface;
@@ -86,8 +90,8 @@ class ShipmentController extends AbstractController
     {
         $table = $dataTableFactory->create([])
             ->add('id', NumberColumn::class, ['label' => '#', 'className' => 'bold', 'searchable' => true])
-            ->add('client_name', TextColumn::class, ['label' => 'Client name', 'className' => 'bold', 'searchable' => true, 'render' => function($value, $context) { return $context['client_name'];}])
-            ->add('detail', NumberColumn::class, ['label' => 'No. details', 'className' => 'bold', 'searchable' => true, 'render' => function($value, $context) { return $context['details'];}])
+            ->add('client_name', TextColumn::class, ['label' => 'Client name', 'className' => 'bold', 'searchable' => true, 'field' => 'c.client_name'])
+            ->add('details', NumberColumn::class, ['label' => 'No. details', 'className' => 'bold', 'searchable' => true])
             ->add('actions', TwigColumn::class, ['label' => 'Actions', 'className' => 'bold', 'searchable' => false, 'template' => 'shipment/details/_partials/table/actions.html.twig'])
             ->createAdapter(ORMAdapter::class, [
                 'entity' => Shipment::class,
@@ -95,10 +99,11 @@ class ShipmentController extends AbstractController
                 'query' => function(QueryBuilder $builider) {
                     $builider
                         ->select('sc.id as id')
+                        ->addSelect('sc.modification')
                         ->addSelect('c.client_name')
                         ->addSelect('COUNT(scd.id) as details')
                         ->from(ShipmentClient::class, 'sc')
-                        ->leftJoin('sc.client', 'c')
+                        ->leftJoin(Client::class, 'c', Join::WITH, 'c.id = sc.client')
                         ->leftJoin(ShipmentClientDetail::class, 'scd', Join::WITH, 'scd.shipmentClient = sc.id')
                         ->groupBy('sc.id');
                 },
@@ -125,6 +130,17 @@ class ShipmentController extends AbstractController
             $em->flush();
 
             return $this->redirectToRoute('shipment_details', ['id' => $shipment->getId()]);
+        }
+
+        $saveShipment = $this->createForm(FinishShipmentType::class, null);
+        $saveShipment->handleRequest($request);
+
+        if ($saveShipment->isSubmitted() && $saveShipment->isValid()) {
+            $shipment->setModification(true);
+            $em->persist($shipment);
+            $em->flush();
+
+            return $this->redirectToRoute('shipment');
         }
 
         return $this->render('shipment/details/index.html.twig', [
@@ -213,12 +229,24 @@ class ShipmentController extends AbstractController
             return $this->redirectToRoute('shipment_client_details', ['id' => $shipmentClient->getId()]);
         }
 
+        $saveClient = $this->createForm(ShipmentFinishDetailType::class, null);
+        $saveClient->handleRequest($request);
+
+        if ($saveClient->isSubmitted() && $saveClient->isValid()) {
+            $shipmentClient->setModification(true);
+            $em->persist($shipmentClient);
+            $em->flush();
+
+            return $this->redirectToRoute('shipment_details', ['id' => $shipmentClient->getShipment()->getId()]);
+        }
+
         return $this->render('shipment/client/details/index.html.twig', [
             'controller_name' => 'ShipmentController',
             'datatable' => $table,
             'form' => $form->createView(),
             'client_name' => $shipmentClient->getClient()->getClientName(),
-            'id' => $shipmentClient->getShipment()->getId()
+            'id' => $shipmentClient->getShipment()->getId(),
+            'save_client' => $saveClient->createView()
         ]);
     }
 
@@ -366,9 +394,8 @@ class ShipmentController extends AbstractController
         
         $table = $dataTableFactory->create([])
             ->add('id', NumberColumn::class, ['label' => '#', 'className' => 'bold', 'searchable' => true])
-            ->add('product_name', TextColumn::class, ['label' => 'Product name', 'className' => 'bold', 'searchable' => true, 'render' => function($value, $context) { return $context['product_name'];}])
+            ->add('product_name', TextColumn::class, ['label' => 'Product name', 'className' => 'bold', 'searchable' => true, 'field' => 'p.product_name'])
             ->add('value', NumberColumn::class, ['label' => 'Value', 'className' => 'bold', 'searchable' => true])
-            ->add('actions', TwigColumn::class, ['label' => 'Actions', 'className' => 'bold', 'searchable' => true, 'template' => 'shipment/client/details/view/_partials/table/actions.html.twig'])
             ->createAdapter(ORMAdapter::class, [
                 'entity' => ShipmentClientDetail::class,
                 'hydrate' => Query::HYDRATE_ARRAY,
@@ -378,7 +405,7 @@ class ShipmentController extends AbstractController
                         ->addSelect('p.product_name')
                         ->addSelect('c.value')
                         ->from(ShipmentClientDetail::class, 'c')
-                        ->leftJoin('c.product', 'p');
+                        ->leftJoin(Product::class, 'p', Join::WITH, 'c.product = p.id');
                 },
                 'criteria' => [
                     function (QueryBuilder $builder) use ($shipmentClient) {
