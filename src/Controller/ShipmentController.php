@@ -146,7 +146,8 @@ class ShipmentController extends AbstractController
         return $this->render('shipment/details/index.html.twig', [
             'controller_name' => 'ShipmentController',
             'datatable' => $table,
-            'form' => $form->createView()
+            'form' => $form->createView(),
+            'save_shipment' => $saveShipment->createView()
         ]);
     }
 
