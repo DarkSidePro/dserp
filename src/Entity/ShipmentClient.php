@@ -36,6 +36,11 @@ class ShipmentClient
      */
     private $shipmentClientDetails;
 
+    /**
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    private $modification;
+
     public function __construct()
     {
         $this->shipmentClientDetails = new ArrayCollection();
@@ -96,6 +101,18 @@ class ShipmentClient
                 $shipmentClientDetail->setShipmentClient(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getModification(): ?bool
+    {
+        return $this->modification;
+    }
+
+    public function setModification(?bool $modification): self
+    {
+        $this->modification = $modification;
 
         return $this;
     }
