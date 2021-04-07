@@ -157,7 +157,7 @@ class ResetPasswordController extends AbstractController
         }
 
         $email = (new TemplatedEmail())
-            ->from(new Address('reset-password@erp.soymax.pl', 'ERP Soymax - Reset Password'))
+            ->from(new Address('reset-password@domain.com', 'DS: ERP - Reset Password'))
             ->to($user->getEmail())
             ->subject('Your password reset request')
             ->htmlTemplate('reset_password/email.html.twig')
