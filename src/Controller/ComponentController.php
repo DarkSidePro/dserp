@@ -134,29 +134,20 @@ class ComponentController extends AbstractController
             $builider->where('c.id = '.$component->getId());
             $oldState = $builider->getQuery()->setMaxResults(1)->getResult(Query::HYDRATE_ARRAY);
             $oldState = $oldState['0']['state'];
+            $newState = (float) $oldState + (float) $mod;
 
-            if ($mod < 0) {
-                $newState = (float) $oldState - (float)$mod;
-
-                if ($newState < 0) {
-                    return $this->redirectToRoute('component_view', ['id' => $component->getId()]);
-                } else {
-                    $componentOperation->setState($newState);
-                }
+            if ($newState < 0) {
+                return $this->redirectToRoute('component_view', ['id' => $component->getId()]);
             } else {
-                $newState = (float) $oldState + (float) $mod;
-
-                if ($newState < 0) {
-                    return $this->redirectToRoute('component_view', ['id' => $component->getId()]);
-                } else {
-                    $componentOperation->setState($newState);
-                }
+                $componentOperation->setState($newState);
             }
+           
 
             $componentOperation->setComponent($component);
             $componentOperation->setDatestamp(new \DateTime);
             $em->persist($componentOperation);
             $em->flush();
+            
             return $this->redirectToRoute('component');
         }
 
