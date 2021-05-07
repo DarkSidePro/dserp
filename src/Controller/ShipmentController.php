@@ -92,7 +92,7 @@ class ShipmentController extends AbstractController
         $table = $dataTableFactory->create([])
             ->add('id', NumberColumn::class, ['label' => '#', 'className' => 'bold', 'searchable' => true])
             ->add('client_name', TextColumn::class, ['label' => 'Client name', 'className' => 'bold', 'searchable' => true, 'field' => 'c.client_name'])
-            ->add('details', NumberColumn::class, ['label' => 'No. details', 'className' => 'bold', 'searchable' => true])
+            ->add('details', NumberColumn::class, ['label' => 'No. details', 'className' => 'bold', 'searchable' => true, 'render' => function ($value, $context) { return $context['details'];}])
             ->add('actions', TwigColumn::class, ['label' => 'Actions', 'className' => 'bold', 'searchable' => false, 'template' => 'shipment/details/_partials/table/actions.html.twig'])
             ->createAdapter(ORMAdapter::class, [
                 'entity' => Shipment::class,
@@ -193,7 +193,7 @@ class ShipmentController extends AbstractController
         $table = $dataTableFactory->create([])
             ->add('id', NumberColumn::class, ['label' => '#', 'className' => 'bold', 'searchable' => true])
             ->add('product_name', TextColumn::class, ['label' => 'Product name', 'className' => 'bold', 'searchable' => true, 'field' => 'p.product_name'])
-            ->add('va', NumberColumn::class, ['label' => 'Value', 'className' => 'bold', 'searchable' => true])
+            ->add('val', NumberColumn::class, ['label' => 'Value', 'className' => 'bold', 'searchable' => true])
             ->add('actions', TwigColumn::class, ['label' => 'Actions', 'className' => 'bold', 'searchable' => true, 'template' => 'shipment/client/details/_partials/table/actions.html.twig'])
             ->createAdapter(ORMAdapter::class, [
                 'entity' => ShipmentClientDetail::class,
@@ -202,9 +202,9 @@ class ShipmentController extends AbstractController
                     $builider
                         ->select('c.id')
                         ->addSelect('p.product_name')
-                        ->addSelect('c.value')
+                        ->addSelect('c.val')
                         ->from(ShipmentClientDetail::class, 'c')
-                        ->leftJoin('c.product', 'p');
+                        ->leftJoin(Product::class, 'p', Join::WITH, 'p.id = c.product');
                 },
                 'criteria' => [
                     function (QueryBuilder $builder) use ($shipmentClient) {
