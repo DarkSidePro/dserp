@@ -32,7 +32,7 @@ class ShipmentClientDetail
     /**
      * @ORM\Column(type="decimal", precision=10, scale=2)
      */
-    private $value;
+    private $val;
 
     public function getId(): ?int
     {
@@ -63,14 +63,14 @@ class ShipmentClientDetail
         return $this;
     }
 
-    public function getValue(): ?string
+    public function getVal(): ?string
     {
-        return $this->value;
+        return $this->val;
     }
 
-    public function setValue(string $value): self
+    public function setVal(string $val): self
     {
-        $this->value = $value;
+        $this->val = $val;
 
         return $this;
     }
