@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Client;
 use App\Entity\Product;
+use App\Entity\ProductOperation;
 use App\Entity\Shipment;
 use App\Entity\ShipmentClient;
 use App\Entity\ShipmentClientDetail;
@@ -191,8 +192,8 @@ class ShipmentController extends AbstractController
         
         $table = $dataTableFactory->create([])
             ->add('id', NumberColumn::class, ['label' => '#', 'className' => 'bold', 'searchable' => true])
-            ->add('product_name', TextColumn::class, ['label' => 'Product name', 'className' => 'bold', 'searchable' => true, 'render' => function($value, $context) { return $context['product_name'];}])
-            ->add('value', NumberColumn::class, ['label' => 'Value', 'className' => 'bold', 'searchable' => true])
+            ->add('product_name', TextColumn::class, ['label' => 'Product name', 'className' => 'bold', 'searchable' => true, 'field' => 'p.product_name'])
+            ->add('va', NumberColumn::class, ['label' => 'Value', 'className' => 'bold', 'searchable' => true])
             ->add('actions', TwigColumn::class, ['label' => 'Actions', 'className' => 'bold', 'searchable' => true, 'template' => 'shipment/client/details/_partials/table/actions.html.twig'])
             ->createAdapter(ORMAdapter::class, [
                 'entity' => ShipmentClientDetail::class,
@@ -234,6 +235,42 @@ class ShipmentController extends AbstractController
         $saveClient->handleRequest($request);
 
         if ($saveClient->isSubmitted() && $saveClient->isValid()) {
+            $shipmentClientId = $shipmentClient->getId();
+            $builder = new QueryBuilder($em);
+            $builder->select('scd.id')
+                ->addSelect('scd.val')
+                ->addSelect('p.id')
+                ->from(ShipmentClientDetail::class, 'scd')
+                ->leftJoin(Product::class, 'p', Join::WITH, 'p.id = scd.product');
+            $builder->andWhere('scd.shipmentClient = '.$shipmentClientId);
+            $details = $builder->getQuery()->getResult(Query::HYDRATE_ARRAY);
+
+            foreach ($details as $product) {
+                $productId = $product['id'];
+                $builider = new QueryBuilder($em);
+                $builider->select('po.state');
+                $builider->from(Product::class, 'p');
+                $builider->leftJoin(ProductOperation::class, 'po', Join::WITH, 'po.product = p.id AND NOT EXISTS (SELECT 1 FROM App\Entity\ProductOperation p1 WHERE p1.product = p.id AND p1.id > po.id)'); 
+                $builider->groupBy('p.id');
+                $builider->where('p.id = '.$productId);
+                $oldState = $builider->getQuery()->setMaxResults(1)->getResult(Query::HYDRATE_ARRAY);
+                $oldState = $oldState['0']['state'];  
+                $newState = (float) $oldState - (float) $product['val'];
+                
+                if ($newState < 0) {
+                    return $this->redirectToRoute('shipment_client_details', ['id' => $shipmentClient->getId()]);
+                }
+
+                $productOperation = new ProductOperation;
+                $productOperation->setProduct($this->getDoctrine()->getRepository(Product::class)->findOneBy(['id' => $product['id']]));
+                $productOperation->setState($newState);
+                $productOperation->setShipmentId($shipmentClient->getShipment());
+                $productOperation->setShipment($product['val']);
+                $productOperation->setDatestamp(new \DateTime);
+                $em->persist($productOperation);
+                $em->flush();
+            }
+
             $shipmentClient->setModification(true);
             $em->persist($shipmentClient);
             $em->flush();
@@ -396,7 +433,7 @@ class ShipmentController extends AbstractController
         $table = $dataTableFactory->create([])
             ->add('id', NumberColumn::class, ['label' => '#', 'className' => 'bold', 'searchable' => true])
             ->add('product_name', TextColumn::class, ['label' => 'Product name', 'className' => 'bold', 'searchable' => true, 'field' => 'p.product_name'])
-            ->add('value', NumberColumn::class, ['label' => 'Value', 'className' => 'bold', 'searchable' => true])
+            ->add('val', NumberColumn::class, ['label' => 'Value', 'className' => 'bold', 'searchable' => true])
             ->createAdapter(ORMAdapter::class, [
                 'entity' => ShipmentClientDetail::class,
                 'hydrate' => Query::HYDRATE_ARRAY,
@@ -404,7 +441,7 @@ class ShipmentController extends AbstractController
                     $builider
                         ->select('c.id')
                         ->addSelect('p.product_name')
-                        ->addSelect('c.value')
+                        ->addSelect('c.val')
                         ->from(ShipmentClientDetail::class, 'c')
                         ->leftJoin(Product::class, 'p', Join::WITH, 'c.product = p.id');
                 },
