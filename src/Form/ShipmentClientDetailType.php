@@ -15,7 +15,7 @@ class ShipmentClientDetailType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
-            ->add('value')
+            ->add('val')
             ->add('product', EntityType::class, [
                 'class' => Product::class,
                 'choice_label' => 'product_name'
