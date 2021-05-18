@@ -7,6 +7,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Entity\User;
 use App\Form\AdminUserType;
+use App\Service\MemberGenerator;
 use Symfony\Component\HttpFoundation\Request;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
@@ -64,7 +65,7 @@ class AdminMemberController extends AbstractController
     /**
      * @Route("/admin/member/update/{id}", name="admin_member_update")
      */
-    public function update(Request $request, EntityManagerInterface $em, UserPasswordEncoderInterface $passwordEncoder, User $user): Response
+    public function update(Request $request, User $user, MemberGenerator $memberGenerator): Response
     {
         $this->denyAccessUnlessGranted('ROLE_SUPER_ADMIN');
 
@@ -72,27 +73,9 @@ class AdminMemberController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $user->setPassword(
-                $passwordEncoder->encodePassword(
-                    $user,
-                    $form->get('plainPassword')->getData()
-                )
-            );
+            $memberUpdate = $memberGenerator->updateMember($form, $user);
 
-            $role = $form->get('role')->getData();
-
-            if ($role == 0) {
-                $user->setRoles(['ROLE_USER']);
-            } elseif ($role == 1) {
-                $user->setRoles(['ROLE_ADMIN', 'ROLE_USER']);
-            } elseif ($role == 2) {
-                $user->setRoles(array('ROLE_SUPER_ADMIN'));
-            }
-
-            $user->setRegistred(new \DateTime);
-
-            $em->persist($user);
-            $em->flush();
+            return $this->redirectToRoute('admin_member_update', ['id' => $user->getId()]);
         }
 
         return $this->render('admin/index.html.twig', [
